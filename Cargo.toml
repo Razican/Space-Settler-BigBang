@@ -1,0 +1,7 @@
+[package]
+name = "sps-creation"
+version = "0.0.1"
+authors = ["Razican <admin@razican.com>"]
+
+[dependencies]
+rand="0.3.0" # In the future substitute by Mersenne Twister
