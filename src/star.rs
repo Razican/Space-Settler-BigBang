@@ -1,13 +1,16 @@
+//! Star implementation
+
 extern crate rand;
 
 use self::rand::Rng;
 use std::f64::consts::PI;
-use super::super::consts::*;
+use super::consts::*;
 
 const G: f64 = 6.67428e-11_f64; // m³·kg⁻¹·s⁻²
 const C: f64 = 299_792_458_f64; // m·s⁻¹
 const BOLTZ: f64 = 5.670373E-8_f64; // W·m⁻²·K⁻⁴
 
+/// Star structure
 pub struct Star {
     id: i32,
     galaxy_id: i32,
@@ -19,6 +22,18 @@ pub struct Star {
 }
 
 impl Star {
+    /// Constructs a new `Star`.
+    ///
+    /// It creates the star generating its parameters using statistical information from the known
+    /// universe.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use star::Star;
+    ///
+    /// let st = Star::new(0, 1);
+    /// ```
     pub fn new(last_id:i32, galaxy: i32) -> Star {
         let orbit = rand::thread_rng().gen_range(20000, 30001);
         let star_class = Star::generate_class();
@@ -28,22 +43,27 @@ impl Star {
             mass: star_mass, radius: star_radius, temp: star_temp}
     }
 
+    /// Gets the ID of the star.
     pub fn get_id(&self) -> i32 {
         self.id
     }
 
+    /// Gets the ID of the galaxy of the star.
     pub fn get_galaxy_id(&self) -> i32 {
         self.galaxy_id
     }
 
+    /// Gets the distance to the center of the galaxy in light years.
     pub fn get_orbit(&self) -> i32 {
         self.orb_radius
     }
 
+    /// Gets the star class.
     pub fn get_class(&self) -> usize {
         self.class
     }
 
+    /// Gets the human readable star class.
     pub fn get_class_str(&self) -> &'static str {
         match self.class {
             0   => "Black hole",
@@ -61,22 +81,27 @@ impl Star {
         }
     }
 
+    /// Gets the mass of the star in Kg.
     pub fn get_mass(&self) -> f64 {
         self.mass
     }
 
+    /// Gets the radius of the star in meters.
     pub fn get_radius(&self) -> f64 {
         self.radius
     }
 
+    /// Gets the density of the star in kg/m³
     pub fn get_density(&self) -> f64 {
         self.mass/self.get_volume()
     }
 
+    /// Gets the effective surface temperature of the star in Kelvin.
     pub fn get_temp(&self) -> u32 {
         self.temp
     }
 
+    /// Gets the luminosity of the star in Watts
     pub fn get_luminosity(&self) -> f64 {
         4_f64*PI*self.radius.powi(2)*BOLTZ*(self.temp as f64).powi(4) // W
     }
