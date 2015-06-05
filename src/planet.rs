@@ -286,3 +286,35 @@ impl Atmosphere {
         self.he
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use super::super::star::Star;
+
+    #[test]
+    fn it_star_id() {
+        let st = Star::new(2, 0);
+        let pl = Planet::new(&st, 0.0183, 1.0643, 3);
+
+        assert_eq!(3, pl.get_orbit().get_star().get_id());
+    }
+
+    #[test]
+    fn it_orbit_getters() {
+        let st = Star::new(2, 0);
+
+        let orb = super::Orbit {star: &st, ecc: 0.5_f64, sMa: 150e+9_f64, incl: 1.5_f64, lan: 1.2_f64,
+            argP: 1.3_f64, m0: 1.4_f64, ax_tilt: 1.1_f64, rot_period: 80_600_f64};
+
+        assert_eq!(3, orb.get_star().get_id());
+        assert_eq!(0.5_f64, orb.get_ecc());
+        assert_eq!(150e+9_f64, orb.get_sMa());
+        assert_eq!(1.5_f64, orb.get_incl());
+        assert_eq!(1.2_f64, orb.get_lan());
+        assert_eq!(1.3_f64, orb.get_argP());
+        assert_eq!(1.4_f64, orb.get_anomaly());
+        assert_eq!(1.1_f64, orb.get_ax_tilt());
+        assert_eq!(80_600_f64, orb.get_rot_period());
+    }
+}
