@@ -3,6 +3,11 @@ name = "bigbang"
 version = "0.0.2"
 authors = ["Razican <admin@razican.com>"]
 license = "BSD 3-Clause License"
+readme = "README.md"
+repository = "https://github.com/Razican/Space-Settler-BigBang"
+description = """
+Big-Bang generator for Space Settler.
+"""
 
 [dependencies]
 rand="0.3.0" # In the future substitute by Mersenne Twister
