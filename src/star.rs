@@ -11,7 +11,7 @@ pub struct Star {
     id: i32,
     galaxy_id: i32,
     orb_radius: i32,
-    class: usize,
+    class: u32,
     mass: f64,
     radius: f64,
     temp: u32,
@@ -56,7 +56,7 @@ impl Star {
     }
 
     /// Gets the star class.
-    pub fn get_class(&self) -> usize {
+    pub fn get_class(&self) -> u32 {
         self.class
     }
 
@@ -78,7 +78,7 @@ impl Star {
         }
     }
 
-    /// Gets the mass of the star in Kg.
+    /// Gets the mass of the star in kg.
     pub fn get_mass(&self) -> f64 {
         self.mass
     }
@@ -88,9 +88,14 @@ impl Star {
         self.radius
     }
 
-    /// Gets the density of the star in kg/m³
+    /// Gets the density of the star in kg/m³.
     pub fn get_density(&self) -> f64 {
         self.mass/self.get_volume()
+    }
+
+    /// Gets the volume of the star in m³
+    pub fn get_volume(&self) -> f64 {
+        4_f64/3_f64*PI*self.radius.powi(3)
     }
 
     /// Gets the effective surface temperature of the star in Kelvin.
@@ -98,16 +103,15 @@ impl Star {
         self.temp
     }
 
-    /// Gets the luminosity of the star in Watts
+    /// Gets the luminosity of the star in Watts.
     pub fn get_luminosity(&self) -> f64 {
         4_f64*PI*self.radius.powi(2)*BOLTZ*(self.temp as f64).powi(4) // W
     }
 
     // ----------  generators  ----------
 
-    fn generate_class() -> usize { // Maybe here could be u8, must test performance
+    fn generate_class() -> u32 { // Maybe here could be u8, must test performance.
         let prob = rand::thread_rng().gen_range(1, 10000001);
-        return 8;
 
         // Numbers have to change meaning
         match prob {
@@ -126,7 +130,7 @@ impl Star {
         }
     }
 
-    fn generate_properties(class: usize) -> (f64, f64, u32) {
+    fn generate_properties(class: u32) -> (f64, f64, u32) {
         match class {
             0   => { // Black hole
                     let mass = if rand::thread_rng().gen_range(0, 2) == 0 { // TODO gaussian distribution
@@ -236,11 +240,5 @@ impl Star {
                 },
             _ => unreachable!()
         }
-    }
-
-    // ----------  private functions  ----------
-
-    fn get_volume(&self) -> f64 {
-        4_f64/3_f64*PI*self.radius.powi(3)
     }
 }

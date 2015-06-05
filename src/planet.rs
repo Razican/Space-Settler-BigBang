@@ -44,6 +44,11 @@ pub struct Planet<'p> {
     // soil: Soil,
     // life: Life,
     albedo: f32,
+    mass: f64,
+    radius: f64,
+    min_temp: f64,
+    max_temp: f64,
+    avg_temp: f64
     // habitable: bool,
     // double_planet: bool,
 }
@@ -52,7 +57,8 @@ impl<'p>  Planet<'p> {
     /// Constructs a new `Planet`.
     ///
     /// It creates a random planet taking into account real planet statistics. It requires the
-    /// reference to parent star.
+    /// reference to parent star and the two values of the titius bode law, along with the order
+    /// of the planet in the solar system.
     ///
     /// # Examples
     ///
@@ -62,17 +68,23 @@ impl<'p>  Planet<'p> {
     ///
     /// let st = Star::new(0, 1);
     ///
-    /// let pl = Planet::new(&st, 0.0183, 1.0643);
+    /// let pl = Planet::new(&st, 0.0183, 1.0643, 3);
     /// ```
-    pub fn new(st: &'p Star, n: f32, m: f32) -> Planet {
+    pub fn new(st: &'p Star, n: f32, m: f32, pos: u32) -> Planet { // maybe position could  u8, must test performance
 
         let orb = Orbit::new(st, 0.01671022, 149.60e+9_f64, 0_f64, -0.196535244, 1.79676742,
             1.75343369, 0.409105177_f64, 86_164.2_f64);
         let atm = Atmosphere::new(101325_f64, 0.0397, 0_f64, 78.084, 20.946, 0.9340, 0_f64, 0.00181,
             0.000179, 0.000524);
         let alb = 0.306;
+        let mass = 0_f64;
+        let rad = 0_f64;
+        let min_temp = 0_f64;
+        let max_temp = 0_f64;
+        let avg_temp = 0_f64;
 
-        Planet {orbit: orb, atmosphere: atm, albedo: alb}
+        Planet {orbit: orb, atmosphere: atm, albedo: alb, mass: mass, radius: rad,
+            min_temp: max_temp, max_temp: max_temp, avg_temp: avg_temp}
     }
 
     /// Gets the orbit information of the planet.
@@ -88,6 +100,41 @@ impl<'p>  Planet<'p> {
     /// Gets the albedo of the planet.
     pub fn get_albedo(&self) -> f32 {
         self.albedo
+    }
+
+    /// Gets the mass of the planet in kg.
+    pub fn get_mass(&self) -> f64 {
+        self.mass
+    }
+
+    /// Gets the radius of the planet in meters.
+    pub fn get_radius(&self) -> f64 {
+        self.radius
+    }
+
+    /// Gets the density of the planet in kg/m³.
+    pub fn get_density(&self) -> f64 {
+        self.mass/self.get_volume()
+    }
+
+    /// Gets the minimum temperature of the planet in Kelvin.
+    pub fn get_min_temp(&self) -> f64 {
+        self.min_temp
+    }
+
+    /// Gets the maximum temperature of the planet in Kelvin.
+    pub fn get_max_temp(&self) -> f64 {
+        self.max_temp
+    }
+
+    /// Gets the average temperature of the planet in Kelvin.
+    pub fn get_avg_temp(&self) -> f64 {
+        self.avg_temp
+    }
+
+    /// Gets the volume of the planet in m³
+    pub fn get_volume(&self) -> f64 {
+        4_f64/3_f64*PI*self.radius.powi(3)
     }
 }
 
@@ -105,62 +152,62 @@ impl<'o> Orbit<'o> {
         self.star
     }
 
-    /// Gets the eccentricity of the orbit
+    /// Gets the eccentricity of the orbit.
     pub fn get_ecc(&self) -> f64 {
         self.ecc
     }
 
-    /// Gets the semimajor axis of the orbit in meters
+    /// Gets the semimajor axis of the orbit in meters.
     pub fn get_sMa(&self) -> f64 {
         self.sMa
     }
 
-    /// Gets the inclination of the orbit in radians
+    /// Gets the inclination of the orbit in radians.
     pub fn get_incl(&self) -> f64 {
         self.incl
     }
 
-    /// Gets the longitude of the ascending node of the orbit in radians
+    /// Gets the longitude of the ascending node of the orbit in radians.
     pub fn get_lan(&self) -> f64 {
         self.lan
     }
 
-    /// Gets the argument of the periapsis of the orbit in radians
+    /// Gets the argument of the periapsis of the orbit in radians.
     pub fn get_argP(&self) -> f64 {
         self.argP
     }
 
-    /// Gets the mean anomaly of the orbit at the beginning of the universe in radians
+    /// Gets the mean anomaly of the orbit at the beginning of the universe in radians.
     pub fn get_anomaly(&self) -> f64 {
         self.m0
     }
 
-    /// Gets the period of the orbit in seconds
+    /// Gets the period of the orbit in seconds.
     pub fn get_orb_period(&self) -> f64 {
         2_f64*PI*(self.sMa.powi(3)/(G*self.star.get_mass())).sqrt()
     }
 
-    /// Gets the apoapsis ob the orbit in meters
+    /// Gets the apoapsis ob the orbit in meters.
     pub fn get_apoapsis(&self) -> f64 {
         self.sMa*(1_f64+self.ecc)
     }
 
-    /// Gets the periapsis ob the orbit in meters
+    /// Gets the periapsis ob the orbit in meters.
     pub fn get_periapsis(&self) -> f64 {
         self.sMa*(1_f64-self.ecc)
     }
 
-    /// Gets the axial tilt of the rotation of the body in radians
+    /// Gets the axial tilt of the rotation of the body in radians.
     pub fn get_ax_tilt(&self) -> f64 {
         self.ax_tilt
     }
 
-    /// Gets the sidereal rotation period of the body in seconds
+    /// Gets the sidereal rotation period of the body in seconds.
     pub fn get_rot_period(&self) -> f64 {
         self.rot_period
     }
 
-    /// Gets the day length of the body in seconds
+    /// Gets the day length of the body in seconds.
     pub fn get_day(&self) -> f64 {
         if self.ax_tilt > 1.3962634 && self.ax_tilt < 1.3962634 {
             self.get_orb_period()
@@ -189,52 +236,52 @@ impl Atmosphere {
             so2: so2, ne: ne, ch4: ch4, he: he}
     }
 
-    /// Gets the pressure of the atmosphere in Pascals
+    /// Gets the pressure of the atmosphere in Pascals.
     pub fn get_pressure(&self) -> f64 {
         self.pressure
     }
 
-    /// Gets the percentage of CO₂ (carbon dioxide) in the atmosphere
+    /// Gets the percentage of CO₂ (carbon dioxide) in the atmosphere.
     pub fn get_co2(&self) -> f64 {
         self.co2
     }
 
-    /// Gets the percentage of CO in the atmosphere
+    /// Gets the percentage of CO in the atmosphere.
     pub fn get_co(&self) -> f64 {
         self.co
     }
 
-    /// Gets the percentage of N₂ (nitrogen) in the atmosphere
+    /// Gets the percentage of N₂ (nitrogen) in the atmosphere.
     pub fn get_n2(&self) -> f64 {
         self.n2
     }
 
-    /// Gets the percentage of O₂ (oxygen) in the atmosphere
+    /// Gets the percentage of O₂ (oxygen) in the atmosphere.
     pub fn get_o2(&self) -> f64 {
         self.o2
     }
 
-    /// Gets the percentage of Ar (argon) in the atmosphere
+    /// Gets the percentage of Ar (argon) in the atmosphere.
     pub fn get_ar(&self) -> f64 {
         self.ar
     }
 
-    /// Gets the percentage of SO₂ (sulfur dioxide) in the atmosphere
+    /// Gets the percentage of SO₂ (sulfur dioxide) in the atmosphere.
     pub fn get_so2(&self) -> f64 {
         self.so2
     }
 
-    /// Gets the percentage of Ne (neon) in the atmosphere
+    /// Gets the percentage of Ne (neon) in the atmosphere.
     pub fn get_ne(&self) -> f64 {
         self.ne
     }
 
-    /// Gets the percentage of CH₄ (methane) in the atmosphere
+    /// Gets the percentage of CH₄ (methane) in the atmosphere.
     pub fn get_ch4(&self) -> f64 {
         self.ch4
     }
 
-    /// Gets the percentage of He (helium) in the atmosphere
+    /// Gets the percentage of He (helium) in the atmosphere.
     pub fn get_he(&self) -> f64 {
         self.he
     }

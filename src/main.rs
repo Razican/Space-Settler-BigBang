@@ -44,7 +44,7 @@ fn main() {
     println!("\tTemperature: {} K", sun.get_temp());
     println!("\tLuminosity: {} suns", sun.get_luminosity()/consts::SUN_LUMINOSITY);
 
-    let earth = Planet::new(&sun, 0.0183, 1.0643);
+    let earth = Planet::new(&sun, 0.0183, 1.0643, 3);
     println!("\nCreated a new Planet:");
 
     println!("\tStar ID: {}", earth.get_orbit().get_star().get_id());

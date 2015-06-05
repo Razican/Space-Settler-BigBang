@@ -1,5 +1,7 @@
 # Big Bang for Space Settler #
 
+[![Build Status](https://travis-ci.org/Razican/Space-Settler-BigBang.svg)](https://travis-ci.org/Razican/Space-Settler-BigBang)
+
 This is the Rust implementation for generating a new galaxy in Space Settler. It will generate a
 random galaxy taking into account real proportions of stars, planets and satellites to the best of
 our knowledge. It will try to do as far as possible a true habitability check in rocky bodies, but
