@@ -6,10 +6,6 @@ use self::rand::Rng;
 use std::f64::consts::PI;
 use super::consts::*;
 
-const G: f64 = 6.67428e-11_f64; // m³·kg⁻¹·s⁻²
-const C: f64 = 299_792_458_f64; // m·s⁻¹
-const BOLTZ: f64 = 5.670373E-8_f64; // W·m⁻²·K⁻⁴
-
 /// Star structure
 pub struct Star {
     id: i32,
@@ -25,7 +21,8 @@ impl Star {
     /// Constructs a new `Star`.
     ///
     /// It creates the star generating its parameters using statistical information from the known
-    /// universe.
+    /// universe. It has two parameters: the first is the ID of the last star created and the
+    /// second one is the ID of the current galaxy.
     ///
     /// # Examples
     ///
@@ -110,20 +107,21 @@ impl Star {
 
     fn generate_class() -> usize { // Maybe here could be u8, must test performance
         let prob = rand::thread_rng().gen_range(1, 10000001);
+        return 8;
 
         // Numbers have to change meaning
         match prob {
-            0...3333            => 0, // Black hole
-            3334...6666         => 1, // Neutron star
-            6667                => 2, // Quark star
-            6668...10000        => 3, // White dwarf
-            10001...10003       => 4, // Class O
-            10004...23000       => 5, // Class B
-            23001...83000       => 6, // Class A
-            83001...383000      => 7, // Class F
-            383001...1143000    => 8, // Class G
-            1143001...2353000   => 9, // Class K
-            2353001...10000000  => 10, // Class M
+            0...3_333               => 0, // Black hole
+            3_334...6_666           => 1, // Neutron star
+            6_667                   => 2, // Quark star
+            6_668...10_000          => 3, // White dwarf
+            10_001...10_003         => 4, // Class O
+            10_004...23_000         => 5, // Class B
+            23_001...83_000         => 6, // Class A
+            83_001...383_000        => 7, // Class F
+            383_001...1_143_000     => 8, // Class G
+            1_143_001...2_353_000   => 9, // Class K
+            2_353_001...10_000_000  => 10, // Class M
             _ => unreachable!()
         }
     }
@@ -245,5 +243,4 @@ impl Star {
     fn get_volume(&self) -> f64 {
         4_f64/3_f64*PI*self.radius.powi(3)
     }
-    // TODO
 }

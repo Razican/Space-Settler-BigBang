@@ -1,6 +1,6 @@
 [root]
 name = "bigbang"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
