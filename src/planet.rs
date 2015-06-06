@@ -355,4 +355,32 @@ mod tests {
         assert_eq!(329.85_f64, planet.get_max_temp());
         assert_eq!(289.15_f64, planet.get_avg_temp());
     }
+
+    #[test]
+    fn it_volume() {
+        let st = Star::new(4, 6);
+        let orb = super::Orbit::new(&st, 0.5_f64, 150e+9_f64, 1.5_f64, 1.2_f64, 1.3_f64, 1.4_f64,
+            1.1_f64, 80_600_f64);
+        let atm = super::Atmosphere::new(101325_f64, 0.0397_f64, 0_f64, 78.084_f64, 20.946_f64,
+            0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
+
+        let planet = Planet {orbit: orb, atmosphere: atm, albedo: 0.306_f64, mass: 5.9726e+24_f64,
+            radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
+
+        assert!(10.8321e+20_f64*0.999 < planet.get_volume() && 10.8321e+20_f64*1.001 > planet.get_volume());
+    }
+
+    #[test]
+    fn it_density() {
+        let st = Star::new(4, 6);
+        let orb = super::Orbit::new(&st, 0.5_f64, 150e+9_f64, 1.5_f64, 1.2_f64, 1.3_f64, 1.4_f64,
+            1.1_f64, 80_600_f64);
+        let atm = super::Atmosphere::new(101325_f64, 0.0397_f64, 0_f64, 78.084_f64, 20.946_f64,
+            0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
+
+        let planet = Planet {orbit: orb, atmosphere: atm, albedo: 0.306_f64, mass: 5.9726e+24_f64,
+            radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
+
+        assert!(5_514_f64*0.999 < planet.get_density() && 5_514_f64*1.001 > planet.get_density());
+    }
 }

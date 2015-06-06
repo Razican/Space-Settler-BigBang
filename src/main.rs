@@ -77,6 +77,11 @@ mod tests {
     use super::consts::*;
 
     #[test]
+    fn it_main() {
+        super::main();
+    }
+
+    #[test]
     fn it_rad_to_deg() {
         assert_eq!(360_f64, rad_to_deg(2_f64*PI));
     }
