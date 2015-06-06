@@ -13,9 +13,9 @@ mod consts {
 	pub const SUN_RADIUS: f64 = 6.96E+8; // m
 	pub const SUN_LUMINOSITY: f64 = 3.846E+26; // W
 
-    pub const G: f64 = 6.67428e-11_f64; // m³·kg⁻¹·s⁻²
+    pub const G: f64 = 6.67428e-11; // m³·kg⁻¹·s⁻²
     pub const C: f64 = 299_792_458_f64; // m·s⁻¹
-    pub const BOLTZ: f64 = 5.670373E-8_f64; // W·m⁻²·K⁻⁴
+    pub const BOLTZ: f64 = 5.670373E-8; // W·m⁻²·K⁻⁴
 }
 
 use std::f64::consts::PI;
@@ -68,4 +68,32 @@ fn main() {
     println!("\t\tNeon (Ne): {}%", earth.get_atmosphere().get_ne());
     println!("\t\tMethane (CH₄): {}%", earth.get_atmosphere().get_ch4());
     println!("\t\tHelium (He): {}%", earth.get_atmosphere().get_he());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::f64::consts::PI;
+    use super::consts::*;
+
+    #[test]
+    fn it_rad_to_deg() {
+        assert_eq!(360_f64, rad_to_deg(2_f64*PI));
+    }
+
+    #[test]
+    fn it_deg_to_rad() {
+        assert_eq!(2_f64*PI, deg_to_rad(360_f64));
+    }
+
+    #[test]
+    fn it_constants() {
+        assert_eq!(1.9884E+30_f64, SUN_MASS);
+        assert_eq!(6.96E+8_f64, SUN_RADIUS);
+        assert_eq!(3.846E+26_f64, SUN_LUMINOSITY);
+
+        assert_eq!(6.67428e-11_f64, G);
+        assert_eq!(299_792_458_f64, C);
+        assert_eq!(5.670373E-8_f64, BOLTZ)
+    }
 }
