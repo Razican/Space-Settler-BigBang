@@ -136,7 +136,7 @@ impl Star {
                     let mass = if rand::thread_rng().gen_range(0, 2) == 0 { // TODO gaussian distribution
                         rand::thread_rng().gen_range(9.942e+30_f64, 1.9884e+31_f64) // 5 - 10 solar masses
                     } else {
-                        rand::thread_rng().gen_range(1.9884e+31_f64, 3.9768e+31_f64) // 3 - 20 solar masses
+                        rand::thread_rng().gen_range(3.9768e+30_f64, 3.9768e+31_f64) // 2 - 20 solar masses
                     };
 
                     let radius = 2_f64*G*mass/C.powi(2); // m
@@ -145,18 +145,18 @@ impl Star {
                     (mass, radius, temp)
                 },
             1   => { // Neutron star
-                    let mass = rand::thread_rng().gen_range(2.743992e+30_f64, 3.9768e+30_f64); // 1.38 - 2 solar masses
+                    let mass = rand::thread_rng().gen_range(2.18724e+30_f64, 4.37448e+30_f64); // 1.1 - 2.2 solar masses
 
-                    let radius = rand::thread_rng().gen_range(11_000_f64, 13_000_f64); // m
+                    let radius = rand::thread_rng().gen_range(11_000_f64, 15_000_f64); // m
                     let temp = rand::thread_rng().gen_range(100_000, 10_000_000); // Kelvin
 
                     (mass, radius, temp)
                 },
             2   => { // Quark star
-                    let mass = rand::thread_rng().gen_range(2.743992e+30_f64, 1.9884e+31_f64); // 2 - 3 solar masses
+                    let mass = rand::thread_rng().gen_range(3.9768e+30_f64, 5.9652e+30_f64); // 2 - 3 solar masses
 
-                    let radius = rand::thread_rng().gen_range(11_000_f64, 13_000_f64); // m
-                    let temp = 0; // N/A
+                    let radius = rand::thread_rng().gen_range(11_000_f64, 15_000_f64); // m
+                    let temp = rand::thread_rng().gen_range(8_000_000, 100_000_000); // Kelvin (N/A)
 
                     (mass, radius, temp)
                 },
@@ -246,6 +246,7 @@ impl Star {
 #[cfg(test)]
 mod tests {
     use super::Star;
+    use super::super::consts::*;
 
     #[test]
     fn it_star_getters() {
@@ -263,10 +264,113 @@ mod tests {
     }
 
     #[test]
+    fn it_class_str() {
+        let st_bh = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 0, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+        assert_eq!("Black hole", st_bh.get_class_str());
+
+        let st_ns = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 1, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+        assert_eq!("Neutron star", st_ns.get_class_str());
+
+        let st_qs = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 2, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+        assert_eq!("Quark star", st_qs.get_class_str());
+
+        let st_wd = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 3, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+        assert_eq!("White dwarf", st_wd.get_class_str());
+
+        let st_o = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 4, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+        assert_eq!("O", st_o.get_class_str());
+
+        let st_b = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 5, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+        assert_eq!("B", st_b.get_class_str());
+
+        let st_a = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 6, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+        assert_eq!("A", st_a.get_class_str());
+
+        let st_f = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 7, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+        assert_eq!("F", st_f.get_class_str());
+
+        let st_g = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 8, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+        assert_eq!("G", st_g.get_class_str());
+
+        let st_k = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 9, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+        assert_eq!("K", st_k.get_class_str());
+
+        let st_m = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 10, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+        assert_eq!("M", st_m.get_class_str());
+    }
+
+    #[test]
     fn it_star_parameters() {
         let st = Star::new(1, 3);
 
         assert_eq!(2, st.get_id());
         assert_eq!(3, st.get_galaxy_id());
+    }
+
+    #[test]
+    fn it_luminosity() {
+        let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 8, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+
+        assert!(384.6e+24_f64*0.999 < st.get_luminosity() && 384.6e+24_f64*1.001 > st.get_luminosity());
+    }
+
+    #[test]
+    fn it_volume() {
+        let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 8, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+
+        assert!(1.412e+27_f64*0.999 < st.get_volume() && 1.412e+27_f64*1.001 > st.get_volume());
+    }
+
+    #[test]
+    fn it_density() {
+        let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 8, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+
+        assert!(1_408_f64*0.999 < st.get_density() && 1_408_f64*1.001 > st.get_density());
+    }
+
+    #[test]
+    fn it_bh_properties() { // Black hole test
+        for _i in 1..10_000 {
+            let (mass, radius, temp) = Star::generate_properties(0);
+            assert!(mass < 20_f64*SUN_MASS && mass > 2_f64*SUN_MASS);
+            assert_eq!(2_f64*G*mass/C.powi(2), radius);
+            assert_eq!(0, temp);
+        }
+    }
+
+    #[test]
+    fn it_ns_properties() { // Neutron star test
+        for _i in 1..10_000 {
+            let (mass, radius, temp) = Star::generate_properties(1);
+            assert!(mass < 2.2_f64*SUN_MASS && mass > 1.1_f64*SUN_MASS);
+            assert!(radius > 11_000_f64 && radius < 15_000_f64);
+            assert!(radius > 2_f64*G*mass/C.powi(2));
+            assert!(temp > 10_000 && temp < 10_000_000);
+        }
+    }
+
+    #[test]
+    fn it_qs_properties() { // Quark star test
+        for _i in 1..10_000 {
+            let (mass, radius, temp) = Star::generate_properties(2);
+            assert!(mass < 3_f64*SUN_MASS && mass > 2_f64*SUN_MASS);
+            assert!(radius > 11_000_f64 && radius < 15_000_f64);
+            assert!(radius > 2_f64*G*mass/C.powi(2));
+            assert!(temp > 8_000_000 && temp < 100_000_000);
+        }
     }
 }

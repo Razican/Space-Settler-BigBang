@@ -8,10 +8,10 @@ use super::consts::*;
 struct Orbit<'o> {
     star: &'o Star,     // Orbiting star
     ecc: f64,           // Eccentricity
-    sMa: f64,           // Semimajor axis (in meters)
+    sm_a: f64,          // Semimajor axis (in meters)
     incl: f64,          // Inclination (in radians)
     lan: f64,           // Longitude of ascending node (in radians)
-    argP: f64,          // Argument of periapsis (in radians)
+    arg_p: f64,         // Argument of periapsis (in radians)
     m0: f64,            // Mean anomaly at the creation of the universe (in radians)
     ax_tilt: f64,       // Axial tilt
     rot_period: f64,    // Rotation period in seconds
@@ -142,9 +142,9 @@ impl<'o> Orbit<'o> {
     /// Constructs a new `Orbit`.
     ///
     /// It creates a new orbit structure with all the needed parameters for complete representation.
-    pub fn new(star: &'o Star, ecc: f64, sMa: f64, incl: f64, lan: f64, argP: f64, m0: f64,
+    pub fn new(star: &'o Star, ecc: f64, sm_a: f64, incl: f64, lan: f64, arg_p: f64, m0: f64,
         ax_tilt: f64, rot_period: f64) -> Orbit {
-        Orbit {star: star, ecc: ecc, sMa: sMa, incl: incl, lan: lan, argP: argP, m0: m0,
+        Orbit {star: star, ecc: ecc, sm_a: sm_a, incl: incl, lan: lan, arg_p: arg_p, m0: m0,
             ax_tilt: ax_tilt, rot_period: rot_period}
     }
 
@@ -158,8 +158,8 @@ impl<'o> Orbit<'o> {
     }
 
     /// Gets the semimajor axis of the orbit in meters.
-    pub fn get_sMa(&self) -> f64 {
-        self.sMa
+    pub fn get_sm_a(&self) -> f64 {
+        self.sm_a
     }
 
     /// Gets the inclination of the orbit in radians.
@@ -173,8 +173,8 @@ impl<'o> Orbit<'o> {
     }
 
     /// Gets the argument of the periapsis of the orbit in radians.
-    pub fn get_argP(&self) -> f64 {
-        self.argP
+    pub fn get_arg_p(&self) -> f64 {
+        self.arg_p
     }
 
     /// Gets the mean anomaly of the orbit at the beginning of the universe in radians.
@@ -184,17 +184,17 @@ impl<'o> Orbit<'o> {
 
     /// Gets the period of the orbit in seconds.
     pub fn get_orb_period(&self) -> f64 {
-        2_f64*PI*(self.sMa.powi(3)/(G*self.star.get_mass())).sqrt()
+        2_f64*PI*(self.sm_a.powi(3)/(G*self.star.get_mass())).sqrt()
     }
 
     /// Gets the apoapsis ob the orbit in meters.
     pub fn get_apoapsis(&self) -> f64 {
-        self.sMa*(1_f64+self.ecc)
+        self.sm_a*(1_f64+self.ecc)
     }
 
     /// Gets the periapsis ob the orbit in meters.
     pub fn get_periapsis(&self) -> f64 {
-        self.sMa*(1_f64-self.ecc)
+        self.sm_a*(1_f64-self.ecc)
     }
 
     /// Gets the axial tilt of the rotation of the body in radians.
@@ -301,10 +301,10 @@ mod tests {
 
         assert_eq!(3, orb.get_star().get_id());
         assert_eq!(0.5_f64, orb.get_ecc());
-        assert_eq!(150e+9_f64, orb.get_sMa());
+        assert_eq!(150e+9_f64, orb.get_sm_a());
         assert_eq!(1.5_f64, orb.get_incl());
         assert_eq!(1.2_f64, orb.get_lan());
-        assert_eq!(1.3_f64, orb.get_argP());
+        assert_eq!(1.3_f64, orb.get_arg_p());
         assert_eq!(1.4_f64, orb.get_anomaly());
         assert_eq!(1.1_f64, orb.get_ax_tilt());
         assert_eq!(80_600_f64, orb.get_rot_period());

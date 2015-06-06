@@ -50,7 +50,7 @@ fn main() {
     println!("\tStar ID: {}", earth.get_orbit().get_star().get_id());
     println!("\tAlbedo: {}", earth.get_albedo());
     println!("\tOrbit:");
-    println!("\t\tSemimajor axis: {:e} meters", earth.get_orbit().get_sMa());
+    println!("\t\tSemimajor axis: {:e} meters", earth.get_orbit().get_sm_a());
     println!("\t\tEccentricity: {}", earth.get_orbit().get_ecc());
     println!("\t\tApoapsis: {:e} meters", earth.get_orbit().get_apoapsis());
     println!("\t\tPeriapsis: {:e} meters", earth.get_orbit().get_periapsis());
