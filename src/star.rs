@@ -263,7 +263,7 @@ mod tests {
     }
 
     #[test]
-    fn it_parameters() {
+    fn it_star_parameters() {
         let st = Star::new(1, 3);
 
         assert_eq!(2, st.get_id());

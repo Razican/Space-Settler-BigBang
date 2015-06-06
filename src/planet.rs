@@ -43,7 +43,7 @@ pub struct Planet<'p> {
     atmosphere: Atmosphere,
     // soil: Soil,
     // life: Life,
-    albedo: f32,
+    albedo: f64,
     mass: f64,
     radius: f64,
     min_temp: f64,
@@ -70,7 +70,7 @@ impl<'p>  Planet<'p> {
     ///
     /// let pl = Planet::new(&st, 0.0183, 1.0643, 3);
     /// ```
-    pub fn new(st: &'p Star, n: f32, m: f32, pos: u32) -> Planet { // maybe position could  u8, must test performance
+    pub fn new(st: &'p Star, n: f64, m: f64, pos: u32) -> Planet { // maybe position could  u8, must test performance
 
         let orb = Orbit::new(st, 0.01671022, 149.60e+9_f64, 0_f64, -0.196535244, 1.79676742,
             1.75343369, 0.409105177_f64, 86_164.2_f64);
@@ -84,7 +84,7 @@ impl<'p>  Planet<'p> {
         let avg_temp = 0_f64;
 
         Planet {orbit: orb, atmosphere: atm, albedo: alb, mass: mass, radius: rad,
-            min_temp: max_temp, max_temp: max_temp, avg_temp: avg_temp}
+            min_temp: min_temp, max_temp: max_temp, avg_temp: avg_temp}
     }
 
     /// Gets the orbit information of the planet.
@@ -98,7 +98,7 @@ impl<'p>  Planet<'p> {
     }
 
     /// Gets the albedo of the planet.
-    pub fn get_albedo(&self) -> f32 {
+    pub fn get_albedo(&self) -> f64 {
         self.albedo
     }
 
@@ -289,7 +289,7 @@ impl Atmosphere {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::Planet;
     use super::super::star::Star;
 
     #[test]
@@ -333,5 +333,26 @@ mod tests {
         let pl = Planet::new(&st, 0.0183, 1.0643, 3);
 
         assert_eq!(3, pl.get_orbit().get_star().get_id());
+    }
+
+    #[test]
+    fn it_planet_getters() {
+        let st = Star::new(4, 6);
+        let orb = super::Orbit::new(&st, 0.5_f64, 150e+9_f64, 1.5_f64, 1.2_f64, 1.3_f64, 1.4_f64,
+            1.1_f64, 80_600_f64);
+        let atm = super::Atmosphere::new(101325_f64, 0.0397_f64, 0_f64, 78.084_f64, 20.946_f64,
+            0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
+
+        let planet = Planet {orbit: orb, atmosphere: atm, albedo: 0.306_f64, mass: 5.9726e+24_f64,
+            radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
+
+        assert_eq!(5, planet.get_orbit().get_star().get_id());
+        assert_eq!(101325_f64, planet.get_atmosphere().get_pressure());
+        assert_eq!(0.306_f64, planet.get_albedo());
+        assert_eq!(5.9726e+24_f64, planet.get_mass());
+        assert_eq!(6.371e+6_f64, planet.get_radius());
+        assert_eq!(183.95_f64, planet.get_min_temp());
+        assert_eq!(329.85_f64, planet.get_max_temp());
+        assert_eq!(289.15_f64, planet.get_avg_temp());
     }
 }
