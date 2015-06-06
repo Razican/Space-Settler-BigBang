@@ -293,14 +293,6 @@ mod tests {
     use super::super::star::Star;
 
     #[test]
-    fn it_star_id() {
-        let st = Star::new(2, 0);
-        let pl = Planet::new(&st, 0.0183, 1.0643, 3);
-
-        assert_eq!(3, pl.get_orbit().get_star().get_id());
-    }
-
-    #[test]
     fn it_orbit_getters() {
         let st = Star::new(2, 0);
 
@@ -317,4 +309,36 @@ mod tests {
         assert_eq!(1.1_f64, orb.get_ax_tilt());
         assert_eq!(80_600_f64, orb.get_rot_period());
     }
+
+    // TODO test day calculation and orbit period
+
+    #[test]
+    fn it_atm_getters() {
+        let atm = super::Atmosphere {pressure: 101325_f64, co2: 0.0397_f64, co: 0_f64,
+            n2: 78.084_f64, o2: 20.946_f64, ar: 0.9340_f64, so2: 0.1_f64, ne: 0.00181_f64,
+            ch4: 0.00017_f64, he: 0.00052_f64};
+
+        assert_eq!(101325_f64,  atm.get_pressure());
+        assert_eq!(0.0397_f64,  atm.get_co2());
+        assert_eq!(0_f64,       atm.get_co());
+        assert_eq!(78.084_f64,  atm.get_n2());
+        assert_eq!(20.946_f64,  atm.get_o2());
+        assert_eq!(0.9340_f64,  atm.get_ar());
+        assert_eq!(0.1_f64,     atm.get_so2());
+        assert_eq!(0.00181_f64, atm.get_ne());
+        assert_eq!(0.00017_f64, atm.get_ch4());
+        assert_eq!(0.00052_f64, atm.get_he());
+    }
+
+    // TODO Planet getters tests
+
+    #[test]
+    fn it_star_id() {
+        let st = Star::new(2, 0);
+        let pl = Planet::new(&st, 0.0183, 1.0643, 3);
+
+        assert_eq!(3, pl.get_orbit().get_star().get_id());
+    }
+
+    // TODO Planet creation tests
 }

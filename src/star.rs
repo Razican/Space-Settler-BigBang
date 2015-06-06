@@ -8,9 +8,9 @@ use super::consts::*;
 
 /// Star structure
 pub struct Star {
-    id: i32,
-    galaxy_id: i32,
-    orb_radius: i32,
+    id: u64,
+    galaxy_id: u32,
+    orb_radius: u32,
     class: u32,
     mass: f64,
     radius: f64,
@@ -31,7 +31,7 @@ impl Star {
     ///
     /// let st = Star::new(0, 1);
     /// ```
-    pub fn new(last_id:i32, galaxy: i32) -> Star {
+    pub fn new(last_id:u64, galaxy: u32) -> Star {
         let orbit = rand::thread_rng().gen_range(20000, 30001);
         let star_class = Star::generate_class();
         let (star_mass, star_radius, star_temp) = Star::generate_properties(star_class);
@@ -41,17 +41,17 @@ impl Star {
     }
 
     /// Gets the ID of the star.
-    pub fn get_id(&self) -> i32 {
+    pub fn get_id(&self) -> u64 {
         self.id
     }
 
     /// Gets the ID of the galaxy of the star.
-    pub fn get_galaxy_id(&self) -> i32 {
+    pub fn get_galaxy_id(&self) -> u32 {
         self.galaxy_id
     }
 
     /// Gets the distance to the center of the galaxy in light years.
-    pub fn get_orbit(&self) -> i32 {
+    pub fn get_orbit(&self) -> u32 {
         self.orb_radius
     }
 
@@ -61,7 +61,7 @@ impl Star {
     }
 
     /// Gets the human readable star class.
-    pub fn get_class_str(&self) -> &'static str {
+    pub fn get_class_str(&self) -> &'static str { // Use enum
         match self.class {
             0   => "Black hole",
             1   => "Neutron star",
@@ -241,4 +241,28 @@ impl Star {
             _ => unreachable!()
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Star;
+
+    #[test]
+    fn it_star_getters() {
+        let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: 8, mass: 1.9885e+30_f64,
+            radius: 6.96e+8_f64, temp: 5_778};
+
+        assert_eq!(2, st.get_id());
+        assert_eq!(5, st.get_galaxy_id());
+        assert_eq!(26_000, st.get_orbit());
+        assert_eq!(8, st.get_class());
+        assert_eq!("G", st.get_class_str());
+        assert_eq!(1.9885e+30_f64, st.get_mass());
+        assert_eq!(6.96e+8_f64, st.get_radius());
+        assert_eq!(5_778, st.get_temp());
+    }
+
+    // TODO test creation:
+    //      - Galaxy and ID
+    //      - Class by class generators
 }
