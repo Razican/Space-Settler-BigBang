@@ -261,8 +261,4 @@ mod tests {
         assert_eq!(6.96e+8_f64, st.get_radius());
         assert_eq!(5_778, st.get_temp());
     }
-
-    // TODO test creation:
-    //      - Galaxy and ID
-    //      - Class by class generators
 }

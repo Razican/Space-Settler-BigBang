@@ -310,8 +310,6 @@ mod tests {
         assert_eq!(80_600_f64, orb.get_rot_period());
     }
 
-    // TODO test day calculation and orbit period
-
     #[test]
     fn it_atm_getters() {
         let atm = super::Atmosphere {pressure: 101325_f64, co2: 0.0397_f64, co: 0_f64,
@@ -330,8 +328,6 @@ mod tests {
         assert_eq!(0.00052_f64, atm.get_he());
     }
 
-    // TODO Planet getters tests
-
     #[test]
     fn it_star_id() {
         let st = Star::new(2, 0);
@@ -339,6 +335,4 @@ mod tests {
 
         assert_eq!(3, pl.get_orbit().get_star().get_id());
     }
-
-    // TODO Planet creation tests
 }
