@@ -296,8 +296,8 @@ mod tests {
     fn it_orbit_getters() {
         let st = Star::new(2, 0);
 
-        let orb = super::Orbit {star: &st, ecc: 0.5_f64, sMa: 150e+9_f64, incl: 1.5_f64, lan: 1.2_f64,
-            argP: 1.3_f64, m0: 1.4_f64, ax_tilt: 1.1_f64, rot_period: 80_600_f64};
+        let orb = super::Orbit::new(&st, 0.5_f64, 150e+9_f64, 1.5_f64, 1.2_f64, 1.3_f64, 1.4_f64,
+            1.1_f64, 80_600_f64);
 
         assert_eq!(3, orb.get_star().get_id());
         assert_eq!(0.5_f64, orb.get_ecc());
@@ -312,9 +312,8 @@ mod tests {
 
     #[test]
     fn it_atm_getters() {
-        let atm = super::Atmosphere {pressure: 101325_f64, co2: 0.0397_f64, co: 0_f64,
-            n2: 78.084_f64, o2: 20.946_f64, ar: 0.9340_f64, so2: 0.1_f64, ne: 0.00181_f64,
-            ch4: 0.00017_f64, he: 0.00052_f64};
+        let atm = super::Atmosphere::new(101325_f64, 0.0397_f64, 0_f64, 78.084_f64, 20.946_f64,
+            0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
 
         assert_eq!(101325_f64,  atm.get_pressure());
         assert_eq!(0.0397_f64,  atm.get_co2());
@@ -329,7 +328,7 @@ mod tests {
     }
 
     #[test]
-    fn it_star_id() {
+    fn it_parameter_test() {
         let st = Star::new(2, 0);
         let pl = Planet::new(&st, 0.0183, 1.0643, 3);
 

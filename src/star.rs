@@ -261,4 +261,12 @@ mod tests {
         assert_eq!(6.96e+8_f64, st.get_radius());
         assert_eq!(5_778, st.get_temp());
     }
+
+    #[test]
+    fn it_parameters() {
+        let st = Star::new(1, 3);
+
+        assert_eq!(2, st.get_id());
+        assert_eq!(3, st.get_galaxy_id());
+    }
 }
