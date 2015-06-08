@@ -37,7 +37,7 @@ fn main() {
     println!("\tID: {}", sun.get_id());
     println!("\tGalaxy: {}", sun.get_galaxy_id());
     println!("\tOrbit: {} light years", sun.get_orbit());
-    println!("\tClass: {}", sun.get_class_str());
+    println!("\tClass: {:?}", sun.get_class());
     println!("\tMass: {} suns", sun.get_mass()/consts::SUN_MASS);
     println!("\tRadius: {} suns", sun.get_radius()/consts::SUN_RADIUS);
     println!("\tDensity: {} kg/m³", sun.get_density());
