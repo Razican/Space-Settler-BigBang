@@ -9,13 +9,15 @@
 mod planet;
 mod star;
 mod consts {
-	pub const SUN_MASS: f64 = 1.9884E+30; // kg
-	pub const SUN_RADIUS: f64 = 6.96E+8; // m
-	pub const SUN_LUMINOSITY: f64 = 3.846E+26; // W
+	pub const SUN_MASS: f64 = 1.9884e+30; // kg
+	pub const SUN_RADIUS: f64 = 6.96e+8; // m
+	pub const SUN_LUMINOSITY: f64 = 3.846e+26; // W
 
     pub const G: f64 = 6.67428e-11; // m³·kg⁻¹·s⁻²
     pub const C: f64 = 299_792_458_f64; // m·s⁻¹
-    pub const BOLTZ: f64 = 5.670373E-8; // W·m⁻²·K⁻⁴
+    pub const BOLTZ: f64 = 5.670373e-8; // W·m⁻²·K⁻⁴
+
+    pub const CH_LIMIT: f64 = 2.765e+30; // kg
 }
 
 use std::f64::consts::PI;

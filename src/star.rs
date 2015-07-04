@@ -158,9 +158,9 @@ impl Star {
                     (mass, radius, temp)
                 },
             StarClass::WhiteDwarf => {
-                    let mass = rand::thread_rng().gen_range(3.9768e+29_f64, 2.863296e+30_f64); // 0.2 - 1.44 solar masses
+                    let mass = rand::thread_rng().gen_range(3.9768e+29_f64, 2.58492e+30_f64); // 0.2 - 1.3 solar masses
 
-                    let radius = (3_f64*mass/(4.0e+9_f64*PI)).powf(1_f64/3_f64);
+                    let radius = 0.78e+7_f64*((CH_LIMIT/mass).powf(2_f64/3_f64) - (mass/CH_LIMIT).powf(2_f64/3_f64)).sqrt();
 
                     let temp = if rand::thread_rng().gen_range(0,4) == 0 {
                         rand::thread_rng().gen_range(4_000, 150_000) // Kelvin
@@ -323,14 +323,13 @@ mod tests {
         }
     }
 
-    // #[test]
-    // fn it_wd_properties() { // White dwarf test
-    //     for _i in 1..10_000 {
-    //         let (mass, radius, temp) = Star::generate_properties(&StarClass::WhiteDwarf);
-    //         assert!(mass < 1.4_f64*SUN_MASS && mass > 2_f64*SUN_MASS);
-    //         assert!(radius > 11_000_f64 && radius < 15_000_f64);
-    //         assert!(radius > 2_f64*G*mass/C.powi(2));
-    //         assert!(temp > 8_000_000 && temp < 100_000_000);
-    //     }
-    // }
+    #[test]
+    fn it_wd_properties() { // White dwarf test
+        for _i in 1..10_000 {
+            let (mass, radius, temp) = Star::generate_properties(&StarClass::WhiteDwarf);
+            assert!(mass < 1.3_f64*SUN_MASS && mass > 0.2_f64*SUN_MASS);
+            assert_eq!(0.78e+7_f64*((CH_LIMIT/mass).powf(2_f64/3_f64) - (mass/CH_LIMIT).powf(2_f64/3_f64)).sqrt(), radius);
+            assert!(temp > 4_000 && temp < 150_000);
+        }
+    }
 }

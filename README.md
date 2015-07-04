@@ -13,3 +13,11 @@ this database.
 
 This software is licensed under the 3-clause BSD license. You may copy, modify and redistribute it
 provided that the conditions shown in the [LICENSE](LICENSE) file are met.
+
+## References ##
+
+**Chandrasekhar limit**:
+ - https://en.wikipedia.org/wiki/Chandrasekhar_limit
+
+**White Dwarf mass - radius relation**:
+ - http://iopscience.iop.org/0004-637X/474/2/774/pdf/0004-637X_474_2_774.pdf
