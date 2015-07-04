@@ -16,8 +16,14 @@ provided that the conditions shown in the [LICENSE](LICENSE) file are met.
 
 ## References ##
 
+**Stellar classification**:
+ - https://en.wikipedia.org/wiki/Stellar_classification
+
 **Chandrasekhar limit**:
  - https://en.wikipedia.org/wiki/Chandrasekhar_limit
 
 **White Dwarf mass - radius relation**:
  - http://iopscience.iop.org/0004-637X/474/2/774/pdf/0004-637X_474_2_774.pdf
+
+**O type star**:
+ - https://en.wikipedia.org/wiki/O-type_main-sequence_star
