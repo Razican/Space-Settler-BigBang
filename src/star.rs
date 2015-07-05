@@ -237,6 +237,78 @@ impl Star {
                 },
         }
     }
+
+    pub fn calculate_num_bodies(&self)  -> u8 {
+        match self.class {
+            StarClass::O | StarClass::BlackHole |
+            StarClass::NeutronStar | StarClass::QuarkStar => 0,
+            StarClass::WhiteDwarf | StarClass::B => {
+                if self.get_luminosity() < 300_f64*SUN_LUMINOSITY {
+                    rand::thread_rng().gen_range(0, 3)
+                } else {0}
+            },
+            StarClass::A => rand::thread_rng().gen_range(0, 4),
+            StarClass::F => rand::thread_rng().gen_range(0, 9),
+            StarClass::G => {
+                if rand::thread_rng().gen_range(0, 11) != 0 {
+                    rand::thread_rng().gen_range(4, 11)
+                } else {
+                    rand::thread_rng().gen_range(0, 4)
+                }
+            },
+            StarClass::K => {
+                if rand::thread_rng().gen_range(0, 16) != 0 {
+                    rand::thread_rng().gen_range(4, 11)
+                } else {
+                    rand::thread_rng().gen_range(0, 4)
+                }
+            },
+            StarClass::M => {
+                if rand::thread_rng().gen_range(0, 21) != 0 {
+                    rand::thread_rng().gen_range(4, 10)
+                } else {
+                    rand::thread_rng().gen_range(0, 5)
+                }
+            }
+        }
+    }
+
+    pub fn calculate_titius_bode(&self, bodies: u8) -> (f64, f64) {
+        if bodies > 0 {
+            let luminosity = self.get_luminosity();
+            let m = if luminosity < 0.01*SUN_LUMINOSITY {
+                rand::thread_rng().gen_range(0.004_f64, 0.01_f64)
+            } else if luminosity < 0.1*SUN_LUMINOSITY {
+                rand::thread_rng().gen_range(0.0075_f64, 0.025_f64)
+            } else if luminosity < 0.5*SUN_LUMINOSITY {
+                rand::thread_rng().gen_range(0.015_f64, 0.1_f64)
+            } else if luminosity < 6_f64*SUN_LUMINOSITY {
+                if rand::thread_rng().gen_range(0, (10_f64-luminosity/SUN_LUMINOSITY) as u8) > 0 {
+                    rand::thread_rng().gen_range(0.01_f64, 0.1_f64)
+                } else {
+                    rand::thread_rng().gen_range(0.025_f64, 0.6_f64)
+                }
+            } else if luminosity < 10_f64*SUN_LUMINOSITY {
+                rand::thread_rng().gen_range(0.1*luminosity/SUN_LUMINOSITY, 0.3*luminosity/SUN_LUMINOSITY)
+            } else if luminosity < 30_f64*SUN_LUMINOSITY {
+                if luminosity*0.15 > 3_f64 {
+                    rand::thread_rng().gen_range(0.1*luminosity/SUN_LUMINOSITY, 3_f64)
+                } else {
+                    rand::thread_rng().gen_range(0.1*luminosity/SUN_LUMINOSITY, 0.15*luminosity/SUN_LUMINOSITY)
+                }
+            } else {
+                rand::thread_rng().gen_range(2.5_f64, 5_f64)
+            };
+
+            let n = if m > 0.035 {
+                m.sqrt()*1.7+0.165
+            } else {
+                0.017/m
+            };
+
+            (m, rand::thread_rng().gen_range(0.8*n, 1.2*n))
+        } else {(0_f64, 0_f64)}
+    }
 }
 
 #[cfg(test)]
@@ -244,7 +316,6 @@ mod tests {
     use super::Star;
     use super::StarClass;
     use super::super::consts::*;
-    use std::f64::consts::PI;
 
     #[test]
     fn it_star_getters() {
@@ -396,7 +467,7 @@ mod tests {
 
     #[test]
     fn it_m_properties() { // M star test
-        for _i in 1..1_000_000 {
+        for _i in 1..10_000 {
             let (mass, radius, temp) = Star::generate_properties(&StarClass::M);
             assert!(mass >= 0.1_f64*SUN_MASS && mass <= 0.45_f64*SUN_MASS);
             assert!(radius <= 0.7_f64*SUN_RADIUS);

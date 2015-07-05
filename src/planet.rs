@@ -70,7 +70,7 @@ impl<'p>  Planet<'p> {
     ///
     /// let pl = Planet::new(&st, 0.0183, 1.0643, 3);
     /// ```
-    pub fn new(st: &'p Star, n: f64, m: f64, pos: u32) -> Planet { // maybe position could  u8, must test performance
+    pub fn new(st: &'p Star, m: f64, n: f64, pos: u32) -> Planet { // maybe position could  u8, must test performance
 
         let orb = Orbit::new(st, 0.01671022, 149.60e+9_f64, 0_f64, -0.196535244, 1.79676742,
             1.75343369, 0.409105177_f64, 86_164.2_f64);
