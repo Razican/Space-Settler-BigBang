@@ -64,7 +64,7 @@ impl<'p>  Planet<'p> {
     ///
     /// It creates a random planet taking into account real planet statistics. It requires the
     /// reference to parent star and the two values of the Titius–Bode law, along with the order
-    /// of the planet in the solar system and the last body's semi-major axis in the solar system
+    /// of the planet in the solar system and the last body's semi-major axis in the solar system.
     ///
     /// # Examples
     ///

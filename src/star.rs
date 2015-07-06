@@ -427,7 +427,7 @@ mod tests {
             let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
                 mass: mass, radius: radius, temp: temp};
 
-            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 2);
+            assert!(st.generate_num_bodies() <= 2);
         }
     }
 
@@ -457,7 +457,7 @@ mod tests {
             let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
                 mass: mass, radius: radius, temp: temp};
 
-            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 2);
+            assert!(st.generate_num_bodies() <= 2);
         }
     }
 
@@ -472,7 +472,7 @@ mod tests {
             let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
                 mass: mass, radius: radius, temp: temp};
 
-            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 3);
+            assert!(st.generate_num_bodies() <= 3);
         }
     }
 
@@ -487,7 +487,7 @@ mod tests {
             let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
                 mass: mass, radius: radius, temp: temp};
 
-            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 8);
+            assert!(st.generate_num_bodies() <= 8);
         }
     }
 
@@ -502,7 +502,7 @@ mod tests {
             let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
                 mass: mass, radius: radius, temp: temp};
 
-            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 10);
+            assert!(st.generate_num_bodies() <= 10);
         }
     }
 
@@ -517,7 +517,7 @@ mod tests {
             let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
                 mass: mass, radius: radius, temp: temp};
 
-            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 10);
+            assert!(st.generate_num_bodies() <= 10);
         }
     }
 
@@ -532,7 +532,7 @@ mod tests {
             let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
                 mass: mass, radius: radius, temp: temp};
 
-            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 9);
+            assert!(st.generate_num_bodies() <= 9);
         }
     }
 
