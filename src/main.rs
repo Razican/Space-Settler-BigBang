@@ -18,6 +18,8 @@ mod consts {
     pub const BOLTZ: f64 = 5.670373e-8; // W·m⁻²·K⁻⁴
 
     pub const CH_LIMIT: f64 = 2.765e+30; // kg
+
+    pub const AU: f64 = 149_597_870_700_f64; // m
 }
 
 use std::f64::consts::PI;
@@ -46,11 +48,11 @@ fn main() {
     println!("\tTemperature: {} K", star.get_temp());
     println!("\tLuminosity: {} suns", star.get_luminosity()/consts::SUN_LUMINOSITY);
 
-    let num_bodies = star.calculate_num_bodies();
-    let (tb_m, tb_n) = star.calculate_titius_bode(num_bodies);
+    let num_bodies = star.generate_num_bodies();
+    let (tb_m, tb_n) = star.generate_titius_bode(num_bodies);
 
     if num_bodies > 0 {
-        let planet = Planet::new(&star, tb_m, tb_n, 1);
+        let planet = Planet::new(&star, tb_m, tb_n, 1, 0_f64);
         println!("\nCreated a new Planet:");
 
         println!("\tStar ID: {}", planet.get_orbit().get_star().get_id());

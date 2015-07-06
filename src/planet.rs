@@ -1,8 +1,13 @@
 //! Planet implementation
 
-use star::Star;
+extern crate rand;
+
 use std::f64::consts::PI;
+
+use self::rand::Rng;
+
 use super::consts::*;
+use star::Star;
 
 /// Orbit structure
 struct Orbit<'o> {
@@ -13,8 +18,9 @@ struct Orbit<'o> {
     lan: f64,           // Longitude of ascending node (in radians)
     arg_p: f64,         // Argument of periapsis (in radians)
     m0: f64,            // Mean anomaly at the creation of the universe (in radians)
-    ax_tilt: f64,       // Axial tilt
-    rot_period: f64,    // Rotation period in seconds
+    period: f64,        // Orbital period (in seconds)
+    ax_tilt: f64,       // Axial tilt (in radians)
+    rot_period: f64,    // Rotation period (in seconds)
 }
 
 /// Atmosphere structure
@@ -57,8 +63,8 @@ impl<'p>  Planet<'p> {
     /// Constructs a new `Planet`.
     ///
     /// It creates a random planet taking into account real planet statistics. It requires the
-    /// reference to parent star and the two values of the titius bode law, along with the order
-    /// of the planet in the solar system.
+    /// reference to parent star and the two values of the Titius–Bode law, along with the order
+    /// of the planet in the solar system and the last body's semi-major axis in the solar system
     ///
     /// # Examples
     ///
@@ -68,12 +74,16 @@ impl<'p>  Planet<'p> {
     ///
     /// let st = Star::new(0, 1);
     ///
-    /// let pl = Planet::new(&st, 0.0183, 1.0643, 3);
+    /// let num_bodies = star.calculate_num_bodies();
+    /// let (tb_m, tb_n) = star.calculate_titius_bode(num_bodies);
+    ///
+    /// if num_bodies > 0 {
+    ///     let planet = Planet::new(&star, tb_m, tb_n, 1);
+    /// }
     /// ```
-    pub fn new(st: &'p Star, m: f64, n: f64, pos: u32) -> Planet { // maybe position could  u8, must test performance
+    pub fn new(st: &'p Star, m: f64, n: f64, position: u8, last_sm_a: f64) -> Planet {
+        let orb = Planet::generate_orbit(st, m, n, position, last_sm_a);
 
-        let orb = Orbit::new(st, 0.01671022, 149.60e+9_f64, 0_f64, -0.196535244, 1.79676742,
-            1.75343369, 0.409105177_f64, 86_164.2_f64);
         let atm = Atmosphere::new(101325_f64, 0.0397, 0_f64, 78.084, 20.946, 0.9340, 0_f64, 0.00181,
             0.000179, 0.000524);
         let alb = 0.306;
@@ -136,6 +146,99 @@ impl<'p>  Planet<'p> {
     pub fn get_volume(&self) -> f64 {
         4_f64/3_f64*PI*self.radius.powi(3)
     }
+
+    fn generate_orbit(st: &Star, m: f64, n: f64, position: u8, last_sm_a: f64) -> Orbit {
+        let mut sm_a = (m*(position as f64) - n).exp()*AU;
+        sm_a = rand::thread_rng().gen_range(sm_a*0.9, sm_a*1.1);
+
+        if sm_a < last_sm_a*1.15 {
+            sm_a = last_sm_a*rand::thread_rng().gen_range(1.15_f64, 1.25_f64);
+        }
+
+        let ecc = if sm_a/AU < st.get_mass()/(SUN_MASS*2_f64) {
+            rand::thread_rng().gen_range(0.05_f64, 0.25_f64)
+        } else {
+            rand::thread_rng().gen_range(0_f64, 0.1_f64)
+        };
+
+        let period = 2_f64*PI*(sm_a.powi(3)/(G*st.get_mass())).sqrt();
+
+        let incl = rand::thread_rng().gen_range(0_f64, PI/18_f64);
+        let lan = rand::thread_rng().gen_range(0_f64, 2_f64*PI);
+        let arg_p = rand::thread_rng().gen_range(0_f64, 2_f64*PI);
+        let m0 = rand::thread_rng().gen_range(0_f64, 2_f64*PI);
+
+        let (ax_tilt, rot_period) = Planet::generate_rotation(st, sm_a, period);
+
+        Orbit::new(st, ecc, sm_a, incl, lan, arg_p, m0, period, ax_tilt, rot_period)
+    }
+
+    fn generate_rotation(st: &Star, sm_a: f64, orb_period: f64) -> (f64, f64) {
+        let tidal_lock =  (st.get_mass()/SUN_MASS).sqrt()/2_f64;
+
+        // if sm_a/AU > tidal_lock {
+            let ax_tilt = if rand::thread_rng().gen_range(0, 1) != 0 {
+                rand::thread_rng().gen_range(0.349_f64, 0.5236_f64) // 20° - 30°
+            } else {
+                rand::thread_rng().gen_range(0_f64, PI)
+            };
+
+            let rot_period = if ax_tilt > PI/2_f64 {
+                if orb_period < 50_000_f64 {
+                    -rand::thread_rng().gen_range(orb_period*0.8, orb_period-1_f64)
+                } else {
+                    -rand::thread_rng().gen_range(50_000_f64, if orb_period < 25_000_000_f64
+                        {orb_period-1_f64} else {25_000_000_f64})
+                }
+            } else {
+                if orb_period < 18_000_f64 {
+                    rand::thread_rng().gen_range(orb_period*0.8, orb_period-1_f64)
+                } else {
+                    rand::thread_rng().gen_range(18_000_f64, if orb_period < 180_000_f64
+                        {orb_period-1_f64} else {180_000_f64})
+                }
+            };
+        // }
+        // elseif ($this->orbit['sma'] > sqrt($tidal_lock)/3)
+        // {
+        //     $this->rotation['axTilt']   = mt_rand(0, 100)/100;
+        //     $this->rotation['period']   = $this->orbit['period']*2/mt_rand(3, 6);
+        // }
+        // else
+        // {
+        //     $this->rotation['axTilt']   = 0;
+        //     $this->rotation['period']   = $this->orbit['period'];
+        // }
+
+        // if ($this->rotation['axTilt'] === 90)
+        // {
+        //     $day    = $this->orbit['period'];
+        // }
+        // else
+        // {
+        //     if ($this->rotation['period'] > 0)
+        //     {
+        //         if ($this->rotation['period'] === $this->orbit['period'])
+        //         {
+        //             $day = $this->rotation['period'];
+        //         }
+        //         else
+        //         {
+        //             $day    = $this->rotation['period']/(1-($this->rotation['period']/$this->orbit['period']));
+        //         }
+        //     }
+        //     elseif ($this->rotation['period'] < 0)
+        //     {
+        //         $day    = abs($this->rotation['period'])/(1+(abs($this->rotation['period'])/$this->orbit['period']));
+        //     }
+        //     else
+        //     {
+        //         $day    = 0;
+        //     }
+        // }
+
+        (ax_tilt, rot_period)
+    }
 }
 
 impl<'o> Orbit<'o> {
@@ -143,9 +246,9 @@ impl<'o> Orbit<'o> {
     ///
     /// It creates a new orbit structure with all the needed parameters for complete representation.
     pub fn new(star: &'o Star, ecc: f64, sm_a: f64, incl: f64, lan: f64, arg_p: f64, m0: f64,
-        ax_tilt: f64, rot_period: f64) -> Orbit {
+        period: f64, ax_tilt: f64, rot_period: f64) -> Orbit {
         Orbit {star: star, ecc: ecc, sm_a: sm_a, incl: incl, lan: lan, arg_p: arg_p, m0: m0,
-            ax_tilt: ax_tilt, rot_period: rot_period}
+            period: period, ax_tilt: ax_tilt, rot_period: rot_period}
     }
 
     pub fn get_star(&self) -> &Star {
@@ -184,7 +287,7 @@ impl<'o> Orbit<'o> {
 
     /// Gets the period of the orbit in seconds.
     pub fn get_orb_period(&self) -> f64 {
-        2_f64*PI*(self.sm_a.powi(3)/(G*self.star.get_mass())).sqrt()
+        self.period
     }
 
     /// Gets the apoapsis ob the orbit in meters.
@@ -297,7 +400,7 @@ mod tests {
         let st = Star::new(2, 0);
 
         let orb = super::Orbit::new(&st, 0.5_f64, 150e+9_f64, 1.5_f64, 1.2_f64, 1.3_f64, 1.4_f64,
-            1.1_f64, 80_600_f64);
+            31_558_118.4_f64, 1.1_f64, 80_600_f64);
 
         assert_eq!(3, orb.get_star().get_id());
         assert_eq!(0.5_f64, orb.get_ecc());
@@ -306,6 +409,7 @@ mod tests {
         assert_eq!(1.2_f64, orb.get_lan());
         assert_eq!(1.3_f64, orb.get_arg_p());
         assert_eq!(1.4_f64, orb.get_anomaly());
+        assert_eq!(31_558_118.4_f64, orb.get_orb_period());
         assert_eq!(1.1_f64, orb.get_ax_tilt());
         assert_eq!(80_600_f64, orb.get_rot_period());
     }
@@ -330,7 +434,7 @@ mod tests {
     #[test]
     fn it_parameter_test() {
         let st = Star::new(2, 0);
-        let pl = Planet::new(&st, 0.0183, 1.0643, 3);
+        let pl = Planet::new(&st, 0.0183, 1.0643, 3, 0_f64);
 
         assert_eq!(3, pl.get_orbit().get_star().get_id());
     }
@@ -339,7 +443,7 @@ mod tests {
     fn it_planet_getters() {
         let st = Star::new(4, 6);
         let orb = super::Orbit::new(&st, 0.5_f64, 150e+9_f64, 1.5_f64, 1.2_f64, 1.3_f64, 1.4_f64,
-            1.1_f64, 80_600_f64);
+            31_558_118.4_f64, 1.1_f64, 80_600_f64);
         let atm = super::Atmosphere::new(101325_f64, 0.0397_f64, 0_f64, 78.084_f64, 20.946_f64,
             0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
 
@@ -360,7 +464,7 @@ mod tests {
     fn it_volume() {
         let st = Star::new(4, 6);
         let orb = super::Orbit::new(&st, 0.5_f64, 150e+9_f64, 1.5_f64, 1.2_f64, 1.3_f64, 1.4_f64,
-            1.1_f64, 80_600_f64);
+            31_558_118.4_f64, 1.1_f64, 80_600_f64);
         let atm = super::Atmosphere::new(101325_f64, 0.0397_f64, 0_f64, 78.084_f64, 20.946_f64,
             0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
 
@@ -374,7 +478,7 @@ mod tests {
     fn it_density() {
         let st = Star::new(4, 6);
         let orb = super::Orbit::new(&st, 0.5_f64, 150e+9_f64, 1.5_f64, 1.2_f64, 1.3_f64, 1.4_f64,
-            1.1_f64, 80_600_f64);
+            31_558_118.4_f64, 1.1_f64, 80_600_f64);
         let atm = super::Atmosphere::new(101325_f64, 0.0397_f64, 0_f64, 78.084_f64, 20.946_f64,
             0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
 

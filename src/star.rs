@@ -2,8 +2,10 @@
 
 extern crate rand;
 
-use self::rand::Rng;
 use std::f64::consts::PI;
+
+use self::rand::Rng;
+
 use super::consts::*;
 
 #[derive(Debug, PartialEq)]
@@ -110,7 +112,7 @@ impl Star {
     fn generate_class() -> StarClass {
         let prob = rand::thread_rng().gen_range(1, 10000001);
 
-        // Numbers have to change meaning
+        // Generate star class based on probabilities.
         match prob {
             0...3_333               => StarClass::BlackHole,
             3_334...6_666           => StarClass::NeutronStar,
@@ -238,7 +240,9 @@ impl Star {
         }
     }
 
-    pub fn calculate_num_bodies(&self)  -> u8 {
+    /// Generates a random number based on the star class and luminosity, that will be the number of
+    /// bodies in the solar system.
+    pub fn generate_num_bodies(&self)  -> u8 {
         match self.class {
             StarClass::O | StarClass::BlackHole |
             StarClass::NeutronStar | StarClass::QuarkStar => 0,
@@ -273,7 +277,9 @@ impl Star {
         }
     }
 
-    pub fn calculate_titius_bode(&self, bodies: u8) -> (f64, f64) {
+    /// Generates Titius-Bode law *m* and *n* parameters. It supposes that bodies > 0, or it will
+    /// panic.
+    pub fn generate_titius_bode(&self, bodies: u8) -> (f64, f64) {
         if bodies > 0 {
             let luminosity = self.get_luminosity();
             let m = if luminosity < 0.01*SUN_LUMINOSITY {
@@ -307,7 +313,7 @@ impl Star {
             };
 
             (m, rand::thread_rng().gen_range(0.8*n, 1.2*n))
-        } else {(0_f64, 0_f64)}
+        } else {panic!("Tried to generate Titius-Bode parameters for 0 body system!")}
     }
 }
 
@@ -370,6 +376,11 @@ mod tests {
             assert!(mass >= 2_f64*SUN_MASS && mass <= 20_f64*SUN_MASS);
             assert_eq!(2_f64*G*mass/C.powi(2), radius);
             assert_eq!(0, temp);
+
+            let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
+                mass: mass, radius: radius, temp: temp};
+
+            assert_eq!(0, st.generate_num_bodies());
         }
     }
 
@@ -381,6 +392,11 @@ mod tests {
             assert!(radius >= 11_000_f64 && radius <= 15_000_f64);
             assert!(radius > 2_f64*G*mass/C.powi(2));
             assert!(temp >= 10_000 && temp <= 10_000_000);
+
+            let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
+                mass: mass, radius: radius, temp: temp};
+
+            assert_eq!(0, st.generate_num_bodies());
         }
     }
 
@@ -392,6 +408,11 @@ mod tests {
             assert!(radius >= 11_000_f64 && radius <= 15_000_f64);
             assert!(radius > 2_f64*G*mass/C.powi(2));
             assert!(temp >= 8_000_000 && temp <= 100_000_000);
+
+            let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
+                mass: mass, radius: radius, temp: temp};
+
+            assert_eq!(0, st.generate_num_bodies());
         }
     }
 
@@ -402,6 +423,11 @@ mod tests {
             assert!(mass >= 0.2_f64*SUN_MASS && mass <= 1.3_f64*SUN_MASS);
             assert_eq!(0.78e+7_f64*((CH_LIMIT/mass).powf(2_f64/3_f64) - (mass/CH_LIMIT).powf(2_f64/3_f64)).sqrt(), radius);
             assert!(temp >= 4_000 && temp <= 150_000);
+
+            let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
+                mass: mass, radius: radius, temp: temp};
+
+            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 2);
         }
     }
 
@@ -412,6 +438,11 @@ mod tests {
             assert!(mass >= 15_f64*SUN_MASS && mass <= 90_f64*SUN_MASS);
             assert!(radius >= 6.6_f64*SUN_RADIUS && radius <= 40_f64*SUN_RADIUS);
             assert!(temp >= 30_000 && temp <= 52_000);
+
+            let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
+                mass: mass, radius: radius, temp: temp};
+
+            assert_eq!(0, st.generate_num_bodies());
         }
     }
 
@@ -422,6 +453,11 @@ mod tests {
             assert!(mass >= 2.1_f64*SUN_MASS && mass <= 16_f64*SUN_MASS);
             assert!(radius >= 1.8_f64*SUN_RADIUS && radius <= 6.6_f64*SUN_RADIUS);
             assert!(temp >= 10_000 && temp <= 30_000);
+
+            let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
+                mass: mass, radius: radius, temp: temp};
+
+            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 2);
         }
     }
 
@@ -432,6 +468,11 @@ mod tests {
             assert!(mass >= 1.4_f64*SUN_MASS && mass <= 2.1_f64*SUN_MASS);
             assert!(radius >= 1.4_f64*SUN_RADIUS && radius <= 1.8_f64*SUN_RADIUS);
             assert!(temp >= 7_500 && temp <= 10_000);
+
+            let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
+                mass: mass, radius: radius, temp: temp};
+
+            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 3);
         }
     }
 
@@ -442,6 +483,11 @@ mod tests {
             assert!(mass >= 1.04_f64*SUN_MASS && mass <= 1.4_f64*SUN_MASS);
             assert!(radius >= 1.15_f64*SUN_RADIUS && radius <= 1.4_f64*SUN_RADIUS);
             assert!(temp >= 6_000 && temp <= 7_500);
+
+            let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
+                mass: mass, radius: radius, temp: temp};
+
+            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 8);
         }
     }
 
@@ -452,6 +498,11 @@ mod tests {
             assert!(mass >= 0.8_f64*SUN_MASS && mass <= 1.04_f64*SUN_MASS);
             assert!(radius >= 0.96_f64*SUN_RADIUS && radius <= 1.15_f64*SUN_RADIUS);
             assert!(temp >= 5_200 && temp <= 6_000);
+
+            let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
+                mass: mass, radius: radius, temp: temp};
+
+            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 10);
         }
     }
 
@@ -462,6 +513,11 @@ mod tests {
             assert!(mass >= 0.45_f64*SUN_MASS && mass <= 0.8_f64*SUN_MASS);
             assert!(radius >= 0.7_f64*SUN_RADIUS && radius <= 0.96_f64*SUN_RADIUS);
             assert!(temp >= 3_700 && temp <= 5_200);
+
+            let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
+                mass: mass, radius: radius, temp: temp};
+
+            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 10);
         }
     }
 
@@ -472,6 +528,20 @@ mod tests {
             assert!(mass >= 0.1_f64*SUN_MASS && mass <= 0.45_f64*SUN_MASS);
             assert!(radius <= 0.7_f64*SUN_RADIUS);
             assert!(temp >= 2_400 && temp <= 3_700);
+
+            let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::NeutronStar,
+                mass: mass, radius: radius, temp: temp};
+
+            assert!(st.generate_num_bodies() >= 0 && st.generate_num_bodies() <= 9);
         }
+    }
+
+    #[test]
+    #[should_panic]
+    fn it_generate_titius_bode_fail() {
+        let st = Star {id: 2, galaxy_id: 5, orb_radius: 26_000, class: StarClass::G,
+            mass: 1.9885e+30_f64, radius: 6.96e+8_f64, temp: 5_778};
+
+        st.generate_titius_bode(0);
     }
 }
