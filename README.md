@@ -14,6 +14,10 @@ this database.
 This software is licensed under the 3-clause BSD license. You may copy, modify and redistribute it
 provided that the conditions shown in the [LICENSE](LICENSE) file are met.
 
+## Documentation ##
+
+The documentation of this project is available in [GitHub pages](http://razican.github.io/Space-Settler-BigBang/). There you can find module by module documentation with some big explanations of how does the big bang work.
+
 ## References ##
 
 **Stellar classification**:

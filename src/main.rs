@@ -26,7 +26,7 @@ fn main() {
     println!("\tMass: {} suns", star.get_mass()/consts::SUN_MASS);
     println!("\tRadius: {} suns", star.get_radius()/consts::SUN_RADIUS);
     println!("\tDensity: {} kg/m³", star.get_density());
-    println!("\tTemperature: {} K", star.get_temp());
+    println!("\tTemperature: {} K", star.get_temperature());
     println!("\tLuminosity: {} suns", star.get_luminosity()/consts::SUN_LUMINOSITY);
 
     let num_bodies = star.generate_num_bodies();
@@ -39,7 +39,7 @@ fn main() {
         println!("\tStar ID: {}", planet.get_orbit().get_star().get_id());
         println!("\tAlbedo: {}", planet.get_albedo());
         println!("\tOrbit:");
-        println!("\t\tSemimajor axis: {:e} meters", planet.get_orbit().get_sm_a());
+        println!("\t\tSemimajor axis: {:e} meters", planet.get_orbit().get_sma());
         println!("\t\tEccentricity: {}", planet.get_orbit().get_ecc());
         println!("\t\tApoapsis: {:e} meters", planet.get_orbit().get_apoapsis());
         println!("\t\tPeriapsis: {:e} meters", planet.get_orbit().get_periapsis());
