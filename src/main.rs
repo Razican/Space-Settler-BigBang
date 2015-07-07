@@ -13,6 +13,7 @@ pub mod utils;
 
 use star::Star;
 use planet::Planet;
+use consts::*;
 use utils::*;
 
 fn main() {
@@ -30,33 +31,37 @@ fn main() {
     println!("\tLuminosity: {} suns", star.get_luminosity()/consts::SUN_LUMINOSITY);
 
     let num_bodies = star.generate_num_bodies();
-    let (tb_m, tb_n) = star.generate_titius_bode(num_bodies);
 
-    if num_bodies > 0 {
-        let planet = Planet::new(&star, tb_m, tb_n, 1, 0_f64);
+    if num_bodies > 2 {
+        let (tb_m, tb_n) = star.generate_titius_bode(num_bodies);
+        let planet = Planet::new(&star, tb_m, tb_n, 3, 0_f64);
         println!("\nCreated a new Planet:");
 
         println!("\tStar ID: {}", planet.get_orbit().get_star().get_id());
+        println!("\tPosition in solar system: {}", planet.get_orbit().get_position());
+        println!("\tPlanet type: {:?}", planet.get_type());
         println!("\tAlbedo: {}", planet.get_albedo());
         println!("\tOrbit:");
-        println!("\t\tSemimajor axis: {:e} meters", planet.get_orbit().get_sma());
+        println!("\t\tSemimajor axis: {} AU", planet.get_orbit().get_sma()/AU);
         println!("\t\tEccentricity: {}", planet.get_orbit().get_ecc());
-        println!("\t\tApoapsis: {:e} meters", planet.get_orbit().get_apoapsis());
-        println!("\t\tPeriapsis: {:e} meters", planet.get_orbit().get_periapsis());
+        println!("\t\tApoapsis: {} AU", planet.get_orbit().get_apoapsis()/AU);
+        println!("\t\tPeriapsis: {} AU", planet.get_orbit().get_periapsis()/AU);
         println!("\t\tOrbital period: {} days", planet.get_orbit().get_orb_period()/planet.get_orbit().get_day());
         println!("\t\tDay length: {} hours", planet.get_orbit().get_day()/3_600_f64);
         println!("\t\tAxial tilt: {}°", rad_to_deg(planet.get_orbit().get_ax_tilt()));
-        println!("\tAtmosphere:");
-        println!("\t\tPressure: {} Pa", planet.get_atmosphere().get_pressure());
-        println!("\t\tCarbon dioxide (CO₂): {}%", planet.get_atmosphere().get_co2());
-        println!("\t\tCarbon monoxide (CO): {}%", planet.get_atmosphere().get_co());
-        println!("\t\tNitrogen (N₂): {}%", planet.get_atmosphere().get_n2());
-        println!("\t\tOxygen (O₂): {}%", planet.get_atmosphere().get_o2());
-        println!("\t\tArgon (Ar): {}%", planet.get_atmosphere().get_ar());
-        println!("\t\tSulfur dioxide (SO₂): {}%", planet.get_atmosphere().get_so2());
-        println!("\t\tNeon (Ne): {}%", planet.get_atmosphere().get_ne());
-        println!("\t\tMethane (CH₄): {}%", planet.get_atmosphere().get_ch4());
-        println!("\t\tHelium (He): {}%", planet.get_atmosphere().get_he());
+        if planet.get_atmosphere().is_some() {
+            println!("\tAtmosphere:");
+            println!("\t\tPressure: {} Pa", planet.get_atmosphere().unwrap().get_pressure());
+            println!("\t\tCarbon dioxide (CO₂): {}%", planet.get_atmosphere().unwrap().get_co2());
+            println!("\t\tCarbon monoxide (CO): {}%", planet.get_atmosphere().unwrap().get_co());
+            println!("\t\tNitrogen (N₂): {}%", planet.get_atmosphere().unwrap().get_n2());
+            println!("\t\tOxygen (O₂): {}%", planet.get_atmosphere().unwrap().get_o2());
+            println!("\t\tArgon (Ar): {}%", planet.get_atmosphere().unwrap().get_ar());
+            println!("\t\tSulfur dioxide (SO₂): {}%", planet.get_atmosphere().unwrap().get_so2());
+            println!("\t\tNeon (Ne): {}%", planet.get_atmosphere().unwrap().get_ne());
+            println!("\t\tMethane (CH₄): {}%", planet.get_atmosphere().unwrap().get_ch4());
+            println!("\t\tHelium (He): {}%", planet.get_atmosphere().unwrap().get_he());
+        }
     }
 }
 

@@ -6,6 +6,7 @@
 extern crate rand;
 
 use std::f64::consts::PI;
+use std::fmt;
 
 use self::rand::Rng;
 
@@ -14,7 +15,7 @@ use consts::*;
 /// StarClass enumeration
 ///
 /// This enumeration contains all the star types available in this universe creation.
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
 pub enum StarClass {
     /// This represents a black hole, an structure so dense that not even the light can escape. Due
     /// to the high radiation, no planets can survive near one of these structures. Their mass is
@@ -74,6 +75,24 @@ pub enum StarClass {
     /// Approximately the 76.45% of the stars will be of this type. They will have up to 9 planets
     /// orbiting them.
     M,
+}
+
+impl fmt::Debug for StarClass {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            StarClass::BlackHole => write!(f, "black hole"),
+            StarClass::NeutronStar => write!(f, "neutron star"),
+            StarClass::QuarkStar => write!(f, "quark star"),
+            StarClass::WhiteDwarf => write!(f, "white dwarf"),
+            StarClass::O => write!(f, "O"),
+            StarClass::B => write!(f, "B"),
+            StarClass::A => write!(f, "A"),
+            StarClass::F => write!(f, "F"),
+            StarClass::G => write!(f, "G"),
+            StarClass::K => write!(f, "K"),
+            StarClass::M => write!(f, "M"),
+        }
+    }
 }
 
 /// Star structure
