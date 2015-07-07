@@ -52,15 +52,15 @@ fn main() {
         if planet.get_atmosphere().is_some() {
             println!("\tAtmosphere:");
             println!("\t\tPressure: {} Pa", planet.get_atmosphere().unwrap().get_pressure());
-            println!("\t\tCarbon dioxide (CO₂): {}%", planet.get_atmosphere().unwrap().get_co2());
-            println!("\t\tCarbon monoxide (CO): {}%", planet.get_atmosphere().unwrap().get_co());
-            println!("\t\tNitrogen (N₂): {}%", planet.get_atmosphere().unwrap().get_n2());
-            println!("\t\tOxygen (O₂): {}%", planet.get_atmosphere().unwrap().get_o2());
-            println!("\t\tArgon (Ar): {}%", planet.get_atmosphere().unwrap().get_ar());
-            println!("\t\tSulfur dioxide (SO₂): {}%", planet.get_atmosphere().unwrap().get_so2());
-            println!("\t\tNeon (Ne): {}%", planet.get_atmosphere().unwrap().get_ne());
-            println!("\t\tMethane (CH₄): {}%", planet.get_atmosphere().unwrap().get_ch4());
-            println!("\t\tHelium (He): {}%", planet.get_atmosphere().unwrap().get_he());
+            println!("\t\tCarbon dioxide (CO₂): {}%", planet.get_atmosphere().unwrap().get_co2()*100_f64);
+            println!("\t\tCarbon monoxide (CO): {}%", planet.get_atmosphere().unwrap().get_co()*100_f64);
+            println!("\t\tNitrogen (N₂): {}%", planet.get_atmosphere().unwrap().get_n2()*100_f64);
+            println!("\t\tOxygen (O₂): {}%", planet.get_atmosphere().unwrap().get_o2()*100_f64);
+            println!("\t\tArgon (Ar): {}%", planet.get_atmosphere().unwrap().get_ar()*100_f64);
+            println!("\t\tSulfur dioxide (SO₂): {}%", planet.get_atmosphere().unwrap().get_so2()*100_f64);
+            println!("\t\tNeon (Ne): {}%", planet.get_atmosphere().unwrap().get_ne()*100_f64);
+            println!("\t\tMethane (CH₄): {}%", planet.get_atmosphere().unwrap().get_ch4()*100_f64);
+            println!("\t\tHelium (He): {}%", planet.get_atmosphere().unwrap().get_he()*100_f64);
         }
     }
 }

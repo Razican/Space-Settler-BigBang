@@ -126,10 +126,7 @@ impl<'p>  Planet<'p> {
         let orb = Planet::generate_orbit(st, m, n, position, last_sm_a);
 
         let planet_type = Planet::generate_type(orb.get_sma(), st.get_luminosity());
-        let atm = if planet_type == PlanetType::Rocky {
-                Some(Atmosphere::new(101325_f64, 0.0397, 0_f64, 78.084, 20.946, 0.9340, 0_f64, 0.00181,
-                0.000179, 0.000524))
-            } else {None};
+        let atm = if planet_type == PlanetType::Rocky {Some(Planet::generate_atmosphere())} else {None};
         let alb = 0.306;
         let mass = 0_f64;
         let rad = 0_f64;
@@ -300,6 +297,63 @@ impl<'p>  Planet<'p> {
         } else {
             PlanetType::Rocky
         }
+    }
+
+    fn generate_atmosphere() -> Atmosphere {
+        let pressure = if rand::thread_rng().gen_range(0, 5) == 0 {
+                rand::thread_rng().gen_range(0_f64, 1e-5_f64)
+            } else if rand::thread_rng().gen_range(0, 2) == 0 {
+                rand::thread_rng().gen_range(0_f64, 100_f64)
+            } else if rand::thread_rng().gen_range(0, 5) != 0 {
+                rand::thread_rng().gen_range(0_f64, 3_000_f64)
+            } else {
+                rand::thread_rng().gen_range(0_f64, 100_000_f64)
+            };
+
+        let mut left = 1_f64;
+        let mut co2 = 0_f64;
+        let mut n2 = 0_f64;
+        let mut o2 = 0_f64;
+
+        if pressure > 0_f64 && rand::thread_rng().gen_range(0, 2) == 0 {
+            co2 = rand::thread_rng().gen_range(0.75_f64, 0.99_f64);
+            left -= co2;
+            n2 = rand::thread_rng().gen_range(0_f64, left);
+            left -= n2;
+            o2 = rand::thread_rng().gen_range(0_f64, left);
+            left -= o2;
+        } else if pressure > 0_f64 {
+            n2 = rand::thread_rng().gen_range(0.5_f64, 0.95_f64);
+            left -= n2;
+            if rand::thread_rng().gen_range(0, 2) == 0 {
+                co2 = rand::thread_rng().gen_range(0.004_f64, left);
+                left -= co2;
+                o2 = rand::thread_rng().gen_range(0_f64, left);
+                left -= o2;
+            } else {
+                o2 = rand::thread_rng().gen_range(0.004_f64, left);
+                left -= o2;
+                co2 = rand::thread_rng().gen_range(0_f64, left);
+                left -= co2;
+            }
+
+        }
+
+        let ar = rand::thread_rng().gen_range(0_f64, left);
+        left -= ar;
+        let ne = rand::thread_rng().gen_range(0_f64, left);
+        left -= ne;
+        let co = rand::thread_rng().gen_range(0_f64, left);
+        left -= co;
+        let so2 = rand::thread_rng().gen_range(0_f64, left);
+        left -= so2;
+        let ch4 = rand::thread_rng().gen_range(0_f64, left);
+        left -= ch4;
+        let he = left;
+
+        Atmosphere::new(pressure, co2, co, n2, o2, ar, so2, ne, ch4, he)
+
+        // $this->_greenhouse();
     }
 }
 
