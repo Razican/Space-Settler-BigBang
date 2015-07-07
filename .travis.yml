@@ -1,13 +1,13 @@
 language: rust
 rust:
-  - stable
-  - beta
-  - nightly
+- stable
+- beta
+- nightly
 sudo: required
 script:
-  - cargo build --verbose
-  - cargo test --verbose
-  - cargo doc
+- cargo build --verbose
+- cargo test --verbose
+- cargo doc
 after_success: |
   sudo apt-get install libcurl4-openssl-dev libelf-dev libdw-dev &&
   wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
@@ -20,3 +20,6 @@ after_success: |
   pip install ghp-import --user $USER &&
   $HOME/.local/bin/ghp-import -n target/doc &&
   git push -qf https://${TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages
+env:
+  global:
+  - secure: pqsBAlaHWuOWtWP+sy7grft5v+X9X4DC6IulMaUPHYX8KbP4KhiUnbJ9Dzg9JDoxlGzukc3GUqeONPXx/3Q94Tk7p8KViAZSFDbEpqbhRch8yBYLNNbfTrZvIBGqNNBuQeA/eCYVZTAnreo7x3FpcTrD9ftwk/LI62eZxKc1hJSt4y18Bcapi5DR7yxpM1UG+IzbNtTLHIUIvR5UT76kNZUCc4aU1A6a4za3Vi6GpdvqAFE/m/IuOsNo5JHhMEbZlvdGnHvFn1dn5V/SuPvSztjDjKLbPFWhyrrPXC+sR5nhp94GEe20k8eBQBYZ0j+va0xrRHrLQ5qwEJGJ2ZeVHZUDoEeC0xzhrvXO/7dEPJzo96gF4iNUTuYQJT9ZxcBe9879NxHiJsU4rsTm2j7QwegH7fPuFpWQ12vnz9BgOrKfOOCuzd5PpxhbmpXknRaWPBq+J1ehFRATq056IIuyYw9RxhiEHVsOLv5PjtGqQeZEgLki+wZWfngccv/Ki0BtsM40h+cfvJtPgOp/3l5EwNhxehf/uoNGDKsnRLCvxIGuBALRKn1AvRQrjoX+KZZN3cP4GN16sRwpseF88ldlYKbJ+/ap6BgQThGlW7ADYz5+actLLElwbvONeIsTXNozowFC0VvJObEXNuvrIm6bnAwqyek5iRuYsN9FN0HlR7Y=
