@@ -1,4 +1,7 @@
-//! Planet implementation
+//! Planet module
+//!
+//! This is the `planet` module. This module contains all the structures, enumerations and
+//! implementations needed to define a planet.
 
 extern crate rand;
 
@@ -6,35 +9,64 @@ use std::f64::consts::PI;
 
 use self::rand::Rng;
 
-use super::consts::*;
+use consts::*;
 use star::Star;
 
 /// Orbit structure
-struct Orbit<'o> {
-    star: &'o Star,     // Orbiting star
-    ecc: f64,           // Eccentricity
-    sm_a: f64,          // Semimajor axis (in meters)
-    incl: f64,          // Inclination (in radians)
-    lan: f64,           // Longitude of ascending node (in radians)
-    arg_p: f64,         // Argument of periapsis (in radians)
-    m0: f64,            // Mean anomaly at the creation of the universe (in radians)
-    period: f64,        // Orbital period (in seconds)
-    ax_tilt: f64,       // Axial tilt (in radians)
-    rot_period: f64,    // Rotation period (in seconds)
+///
+/// This structure contains all the needed information to define an orbit, and as an extra, it
+/// contains the axial tilt of the rotation of the body and the rotation period of the body. It also
+/// includes a reference to the star being orbited. It also contains the orbital period, even if it
+/// can be calculated with the rest of the parameters.
+pub struct Orbit<'o> {
+    /// The star being orbited
+    star: &'o Star,
+    /// The eccentricity of the orbit
+    ecc: f64,
+    /// The semimajor axis of the orbit, in *m*
+    sm_a: f64,
+    /// The inclination of the orbit, in *rad*
+    incl: f64,
+    /// The longitude of the ascending node of the orbit, in *rad*
+    lan: f64,
+    /// The argument of the periapsis of the orbit, in *rad*
+    arg_p: f64,
+    /// The mean anomaly at the creation of the universe, in *rad*
+    m0: f64,
+    /// The orbital period, in *s*
+    period: f64,
+    /// The axial tilt of the rotation of the body, in *rad*
+    ax_tilt: f64,
+    /// The rotation period of the body, in *s*
+    rot_period: f64,
 }
 
 /// Atmosphere structure
-struct Atmosphere {
-    pressure: f64,  // Pressure in Pascals
-    co2: f64,       // Carbon dioxide (percentage)
-    co: f64,        // Carbon monoxide (percentage)
-    n2: f64,        // Nitrogen (percentage)
-    o2: f64,        // Oxygen (percentage)
-    ar: f64,        // Argon (percentage)
-    so2: f64,       // Sulfur dioxide (percentage)
-    ne: f64,        // Neon (percentage)
-    ch4: f64,       // Methane (percentage)
-    he: f64,        // Helium (percentage)
+///
+/// This structure defines an atmosphere with all the needed parameters and chemical elements. This
+/// will be used not only as a mere curiosity but to calculate greenhouse effect and habitability of
+/// the body.
+pub struct Atmosphere {
+    /// Surface pressure of the atmosphere, in *Pa*
+    pressure: f64,
+    /// *CO₂* (Carbon dioxide) percentage in the atmosphere (0% to 100%)
+    co2: f64,
+    /// *CO* (Carbon monoxide) percentage in the atmosphere (0% to 100%)
+    co: f64,
+    /// *N₂* (Nitrogen) percentage in the atmosphere (0% to 100%)
+    n2: f64,
+    /// *O₂* (Oxygen) percentage in the atmosphere (0% to 100%)
+    o2: f64,
+    /// *Ar* (Argon) percentage in the atmosphere (0% to 100%)
+    ar: f64,
+    /// *SO₂* (Sulfur dioxide) percentage in the atmosphere (0% to 100%)
+    so2: f64,
+    /// *Ne* (Neon) percentage in the atmosphere (0% to 100%)
+    ne: f64,
+    /// *CH₄* (Methane) percentage in the atmosphere (0% to 100%)
+    ch4: f64,
+    /// *He* (Helium) percentage in the atmosphere (0% to 100%)
+    he: f64,
 }
 
 // struct Soil {
@@ -176,7 +208,7 @@ impl<'p>  Planet<'p> {
     fn generate_rotation(st: &Star, sm_a: f64, orb_period: f64) -> (f64, f64) {
         let tidal_lock =  (st.get_mass()/SUN_MASS).sqrt()/2_f64;
 
-        // if sm_a/AU > tidal_lock {
+        if sm_a/AU > tidal_lock {
             let ax_tilt = if rand::thread_rng().gen_range(0, 1) != 0 {
                 rand::thread_rng().gen_range(0.349_f64, 0.5236_f64) // 20° - 30°
             } else {
@@ -198,46 +230,16 @@ impl<'p>  Planet<'p> {
                         {orb_period-1_f64} else {180_000_f64})
                 }
             };
-        // }
-        // elseif ($this->orbit['sma'] > sqrt($tidal_lock)/3)
-        // {
-        //     $this->rotation['axTilt']   = mt_rand(0, 100)/100;
-        //     $this->rotation['period']   = $this->orbit['period']*2/mt_rand(3, 6);
-        // }
-        // else
-        // {
-        //     $this->rotation['axTilt']   = 0;
-        //     $this->rotation['period']   = $this->orbit['period'];
-        // }
 
-        // if ($this->rotation['axTilt'] === 90)
-        // {
-        //     $day    = $this->orbit['period'];
-        // }
-        // else
-        // {
-        //     if ($this->rotation['period'] > 0)
-        //     {
-        //         if ($this->rotation['period'] === $this->orbit['period'])
-        //         {
-        //             $day = $this->rotation['period'];
-        //         }
-        //         else
-        //         {
-        //             $day    = $this->rotation['period']/(1-($this->rotation['period']/$this->orbit['period']));
-        //         }
-        //     }
-        //     elseif ($this->rotation['period'] < 0)
-        //     {
-        //         $day    = abs($this->rotation['period'])/(1+(abs($this->rotation['period'])/$this->orbit['period']));
-        //     }
-        //     else
-        //     {
-        //         $day    = 0;
-        //     }
-        // }
+            (ax_tilt, rot_period)
+        } else if sm_a > tidal_lock.sqrt()/3_f64 {
+            let ax_tilt = rand::thread_rng().gen_range(0_f64, 0.017454_f64); // 0° - 1°
+            let rot_period = orb_period*2_f64/(rand::thread_rng().gen_range(3, 6) as f64); // Resonance
 
-        (ax_tilt, rot_period)
+            (ax_tilt, rot_period)
+        } else { // Tidal lock
+            (0_f64, orb_period)
+        }
     }
 }
 
@@ -245,12 +247,13 @@ impl<'o> Orbit<'o> {
     /// Constructs a new `Orbit`.
     ///
     /// It creates a new orbit structure with all the needed parameters for complete representation.
-    pub fn new(star: &'o Star, ecc: f64, sm_a: f64, incl: f64, lan: f64, arg_p: f64, m0: f64,
+    fn new(star: &'o Star, ecc: f64, sm_a: f64, incl: f64, lan: f64, arg_p: f64, m0: f64,
         period: f64, ax_tilt: f64, rot_period: f64) -> Orbit {
         Orbit {star: star, ecc: ecc, sm_a: sm_a, incl: incl, lan: lan, arg_p: arg_p, m0: m0,
             period: period, ax_tilt: ax_tilt, rot_period: rot_period}
     }
 
+    /// Gets the star being orbited.
     pub fn get_star(&self) -> &Star {
         self.star
     }
@@ -333,7 +336,7 @@ impl Atmosphere {
     ///
     /// It creates a new atmosphere structure with all the percentages of the composition and its
     /// pressure.
-    pub fn new(pressure: f64, co2: f64, co: f64, n2: f64, o2: f64, ar: f64, so2: f64,
+    fn new(pressure: f64, co2: f64, co: f64, n2: f64, o2: f64, ar: f64, so2: f64,
         ne: f64, ch4: f64, he: f64) -> Atmosphere {
         Atmosphere {pressure: pressure, co2: co2, co: co, n2: n2, o2: o2, ar: ar,
             so2: so2, ne: ne, ch4: ch4, he: he}

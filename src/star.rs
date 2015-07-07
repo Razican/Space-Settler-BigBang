@@ -1,4 +1,7 @@
-//! Star implementation
+//! Star module
+//!
+//! This is the `star` module. This module contains all the structures, enumerations and
+//! implementations needed to define a star.
 
 extern crate rand;
 
@@ -6,31 +9,90 @@ use std::f64::consts::PI;
 
 use self::rand::Rng;
 
-use super::consts::*;
+use consts::*;
 
+/// StarClass enumeration
+///
+/// This enumeration contains all the star types available in this universe creation.
 #[derive(Debug, PartialEq)]
-enum StarClass {
+pub enum StarClass {
+    /// This represents a black hole, an structure so dense that not even the light can escape. Due
+    /// to the high radiation, no planets can survive near one of these structures. Their mass is
+    /// between 2 and 20 solar masses. Approximately the 0.03333% of the stars in the galaxy will be
+    /// of this type. Its effective temperature will be represented as 0K.
     BlackHole,
+    /// This represents a neutron star. Neutron stars are really compact stars, that due to their
+    /// extreme gravitational forces not even atomic nuclei can survive, and the protons are
+    /// degraded to neutrons. Their mass is between 1.1 and 2.2 solar masses. Due to the high
+    /// radiation, no planet can survive near a neutron star. Some neutron stars can be seen as
+    /// pulsars. Approximately the 0.03333% of the stars in the galaxy will be of this type.
     NeutronStar,
+    /// This represents a quark star. Quark stars are hypothetical stars that are even more compact
+    /// than neutron stars but they have not collapsed into black holes. They have between 2 and 3
+    /// solar masses. They have such big pressures that even the quarks that are part of the
+    /// neutrons get free. Approximately the 0.00001% of the stars in the galaxy will be of this
+    /// type, so most of the galaxies will not even have one.
     QuarkStar,
+    /// This represents a white dwarf. A white dwarf is a compact star that is usually the remnant
+    /// of a Sun-type star. They are very dense and hot, and their size is inversely proportional to
+    /// the cube of their mass, which can be between 0.2 and 1.39 solar masses. This last mass is
+    /// the Chandrasekhar limit. There are not many planets around quark stars, and never more than
+    /// 2. Approximately the 0.03332% of the stars in the galaxy will be of this type.
     WhiteDwarf,
+    /// This represents an O type star. This stars are hot and blue colored. Their surface
+    /// temperature can be as high as 52,000K. Approximately the 0.00003% of the stars will be of
+    /// this type, so many galaxies will not even have one. No planet can survive to the high
+    /// radiation coming from the star.
     O,
+    /// This represents a B type star. This stars are hot and blue-white colored. Their surface
+    /// temperature is usually between 10,000K and 30,000K and their mass between 2.1 and 16 solar
+    /// masses. Approximately the 0.13% of the stars will be of this type. No more than 2 planets
+    /// will survive to the radiations, and only in small B type stars.
     B,
+    /// This represents an A type of star. This stars are white stars. Their surface temperature is
+    /// usually between 7,500K and 10,000K and their mass between 1.4 and 2.1 solar masses.
+    /// Approximately the 0.6% of the stars will be of this type. They will have up to 3 planets
+    /// orbiting them.
     A,
+    /// This represents an F type of star. This stars are yellow-white stars. Their surface
+    /// temperature is usually between 6,000K and 7,500K and their mass between 1.04 and 1.4 solar
+    /// masses. Approximately the 3% of the stars will be of this type. They will have up to 8
+    /// planets orbiting them.
     F,
+    /// This represents an G type of star, the same type as our Sun. This stars are yellow stars.
+    /// Their surface temperature is usually between 5,200K and 6,000K and their mass between 0.8
+    /// and 1.04 solar masses. Approximately the 7.6% of the stars will be of this type. They will
+    /// have up to 10 planets orbiting them.
     G,
+    /// This represents an K type of star. This stars are orange stars. Their surface temperature is
+    /// usually between 3,700K and 5,200K and their mass between 0.45 and 0.8 solar masses.
+    /// Approximately the 12.1% of the stars will be of this type. They will have up to 10 planets
+    /// orbiting them.
     K,
+    /// This represents an M type of star. This stars are red stars. Their surface temperature is
+    /// usually between 2,400K and 3,700K and their mass between 0.08 and 0.45 solar masses.
+    /// Approximately the 76.45% of the stars will be of this type. They will have up to 9 planets
+    /// orbiting them.
     M,
 }
 
 /// Star structure
+///
+/// This structure represents all the parameters of the given star.
 pub struct Star {
+    /// The ID of the star
     id: u64,
+    /// The ID of the galaxy where the star is
     galaxy_id: u32,
+    /// The orbit radius, in light years, around the center of the galaxy.
     orb_radius: u32,
+    /// The star class
     class: StarClass,
+    /// The mass of the star, in *kg*
     mass: f64,
+    /// The radius of the star, in *kg*
     radius: f64,
+    /// The effective temperature of the surface of the star, in *K*
     temp: u32,
 }
 
@@ -132,7 +194,7 @@ impl Star {
     fn generate_properties(class: &StarClass) -> (f64, f64, u32) {
         match *class {
             StarClass::BlackHole => {
-                    let mass = if rand::thread_rng().gen_range(0, 2) == 0 { // TODO gaussian distribution
+                    let mass = if rand::thread_rng().gen_range(0, 2) == 0 {
                         rand::thread_rng().gen_range(9.942e+30_f64, 1.9884e+31_f64) // 5 - 10 solar masses
                     } else {
                         rand::thread_rng().gen_range(3.9768e+30_f64, 3.9768e+31_f64) // 2 - 20 solar masses
@@ -240,6 +302,8 @@ impl Star {
         }
     }
 
+    /// Generate number of bodies
+    ///
     /// Generates a random number based on the star class and luminosity, that will be the number of
     /// bodies in the solar system.
     pub fn generate_num_bodies(&self)  -> u8 {
@@ -277,6 +341,8 @@ impl Star {
         }
     }
 
+    /// Generate Titius-Bode
+    ///
     /// Generates Titius-Bode law *m* and *n* parameters. It supposes that bodies > 0, or it will
     /// panic.
     pub fn generate_titius_bode(&self, bodies: u8) -> (f64, f64) {

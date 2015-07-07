@@ -6,33 +6,14 @@
 //! Then, the planets are created thinking on habitability, but following as far as possible all the
 //! physical laws.
 
-mod planet;
-mod star;
-mod consts {
-	pub const SUN_MASS: f64 = 1.9884e+30; // kg
-	pub const SUN_RADIUS: f64 = 6.96e+8; // m
-	pub const SUN_LUMINOSITY: f64 = 3.846e+26; // W
+pub mod planet;
+pub mod star;
+pub mod consts;
+pub mod utils;
 
-    pub const G: f64 = 6.67428e-11; // m³·kg⁻¹·s⁻²
-    pub const C: f64 = 299_792_458_f64; // m·s⁻¹
-    pub const BOLTZ: f64 = 5.670373e-8; // W·m⁻²·K⁻⁴
-
-    pub const CH_LIMIT: f64 = 2.765e+30; // kg
-
-    pub const AU: f64 = 149_597_870_700_f64; // m
-}
-
-use std::f64::consts::PI;
 use star::Star;
 use planet::Planet;
-
-pub fn rad_to_deg(rads: f64) -> f64 {
-    rads*180_f64/PI
-}
-
-pub fn deg_to_rad(degs: f64) -> f64 {
-    degs*PI/180_f64
-}
+use utils::*;
 
 fn main() {
 	let star = Star::new(0, 1);
@@ -81,33 +62,8 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use std::f64::consts::PI;
-    use super::consts::*;
-
     #[test]
     fn it_main() {
         super::main();
-    }
-
-    #[test]
-    fn it_rad_to_deg() {
-        assert_eq!(360_f64, rad_to_deg(2_f64*PI));
-    }
-
-    #[test]
-    fn it_deg_to_rad() {
-        assert_eq!(2_f64*PI, deg_to_rad(360_f64));
-    }
-
-    #[test]
-    fn it_constants() {
-        assert_eq!(1.9884E+30_f64, SUN_MASS);
-        assert_eq!(6.96E+8_f64, SUN_RADIUS);
-        assert_eq!(3.846E+26_f64, SUN_LUMINOSITY);
-
-        assert_eq!(6.67428e-11_f64, G);
-        assert_eq!(299_792_458_f64, C);
-        assert_eq!(5.670373E-8_f64, BOLTZ)
     }
 }
