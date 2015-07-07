@@ -1,6 +1,19 @@
 language: rust
+rust:
+  - stable
+  - beta
+  - nightly
 sudo: required
+  - cargo build --verbose
+  - cargo test --verbose
+  - cargo doc
 after_success: |
+  [ $TRAVIS_BRANCH = master ] &&
+  [ $TRAVIS_PULL_REQUEST = false ] &&
+  [ $TRAVIS_RUST_VERSION = stable ] &&
+  pip install ghp-import --user $USER &&
+  $HOME/.local/bin/ghp-import -n target/doc &&
+  git push -qf https://${TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages &&
   sudo apt-get install libcurl4-openssl-dev libelf-dev libdw-dev &&
   wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
   tar xzf master.tar.gz && mkdir kcov-master/build && cd kcov-master/build && cmake .. && make &&
