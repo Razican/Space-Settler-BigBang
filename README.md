@@ -1,7 +1,7 @@
 # Big Bang for Space Settler #
 
-[![Build Status](https://travis-ci.org/Razican/Space-Settler-BigBang.svg)](https://travis-ci.org/Razican/Space-Settler-BigBang)
-[![Coverage Status](https://coveralls.io/repos/Razican/Space-Settler-BigBang/badge.svg)](https://coveralls.io/r/Razican/Space-Settler-BigBang)
+[![Build Status](https://travis-ci.org/Razican/Space-Settler-BigBang.svg?branch=master)](https://travis-ci.org/Razican/Space-Settler-BigBang)
+[![Coverage Status](https://coveralls.io/repos/Razican/Space-Settler-BigBang/badge.svg?branch=master&service=github)](https://coveralls.io/github/Razican/Space-Settler-BigBang?branch=master)
 
 This is the Rust implementation for generating a new galaxy in Space Settler. It will generate a
 random galaxy taking into account real proportions of stars, planets and satellites to the best of
@@ -31,3 +31,6 @@ The documentation of this project is available in [GitHub pages](http://razican.
 
 **O type star**:
  - https://en.wikipedia.org/wiki/O-type_main-sequence_star
+
+**Roche limit calculation**:
+ - https://en.wikipedia.org/wiki/Roche_limit#Determining_the_Roche_limit

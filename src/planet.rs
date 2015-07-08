@@ -134,7 +134,8 @@ impl<'p>  Planet<'p> {
         let avg_temp = 0_f64;
 
         Planet {orbit: orb, atmosphere: atm, planet_type: planet_type, albedo: alb, mass: mass,
-            radius: radius, min_temp: min_temp, max_temp: max_temp, avg_temp: avg_temp}
+            radius: radius, min_temp: min_temp, max_temp: max_temp,
+            avg_temp: avg_temp}
     }
 
     /// Get `Orbit`
@@ -214,6 +215,27 @@ impl<'p>  Planet<'p> {
     pub fn get_avg_temp(&self) -> f64 {
         self.avg_temp
     }
+
+    /// Check Roche limit
+    ///
+    /// Checks if the Roche limit for the planet is correct.
+    pub fn is_roche_ok(&self) -> bool {
+        let rigid = self.radius*(3_f64*self.orbit.get_star().get_mass()/self.mass).powf(1_f64/3_f64);
+        let fluid = 2.455*self.radius*(self.orbit.get_star().get_mass()/self.mass).powf(1_f64/3_f64);
+
+        let roche_limit = match self.planet_type {
+            PlanetType::Rocky => {
+                rand::thread_rng().gen_range(rigid, rigid*0.3+fluid*0.7)
+            },
+            PlanetType::Gaseous => {
+                rand::thread_rng().gen_range(rigid*0.3+fluid*0.7, fluid)
+            }
+        };
+
+        self.get_orbit().get_periapsis() > roche_limit
+    }
+
+    // ----------  generators  ----------
 
     /// Generate orbit
     ///
@@ -670,6 +692,7 @@ mod tests {
         assert_eq!(0.306_f64, planet.get_albedo());
         assert_eq!(5.9726e+24_f64, planet.get_mass());
         assert_eq!(6.371e+6_f64, planet.get_radius());
+        assert!(planet.is_roche_ok());
         assert_eq!(183.95_f64, planet.get_min_temp());
         assert_eq!(329.85_f64, planet.get_max_temp());
         assert_eq!(289.15_f64, planet.get_avg_temp());
