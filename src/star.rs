@@ -373,7 +373,7 @@ impl Star {
             },
             StarClass::M => {
                 if rand::thread_rng().gen_range(0, 21) != 0 {
-                    rand::thread_rng().gen_range(4, 10)
+                    rand::thread_rng().gen_range(3, 10)
                 } else {
                     rand::thread_rng().gen_range(0, 5)
                 }

@@ -127,15 +127,14 @@ impl<'p>  Planet<'p> {
 
         let planet_type = Planet::generate_type(orb.get_sma(), st.get_luminosity());
         let atm = if planet_type == PlanetType::Rocky {Some(Planet::generate_atmosphere())} else {None};
+        let (mass, radius) = Planet::generate_properties(&planet_type);
         let alb = 0.306;
-        let mass = 0_f64;
-        let rad = 0_f64;
         let min_temp = 0_f64;
         let max_temp = 0_f64;
         let avg_temp = 0_f64;
 
         Planet {orbit: orb, atmosphere: atm, planet_type: planet_type, albedo: alb, mass: mass,
-            radius: rad, min_temp: min_temp, max_temp: max_temp, avg_temp: avg_temp}
+            radius: radius, min_temp: min_temp, max_temp: max_temp, avg_temp: avg_temp}
     }
 
     /// Get `Orbit`
@@ -286,6 +285,9 @@ impl<'p>  Planet<'p> {
         }
     }
 
+    /// Generate planet type
+    ///
+    /// Generates the PlanetType of the planet depending on star and the SMa of the orbit.
     fn generate_type(sma: f64, luminosity: f64) -> PlanetType {
         if sma/(AU*2_f64) < (luminosity/SUN_LUMINOSITY).sqrt() {
             if rand::thread_rng().gen_range(0, 2) == 0 {PlanetType::Gaseous} else {PlanetType::Rocky}
@@ -299,6 +301,9 @@ impl<'p>  Planet<'p> {
         }
     }
 
+    /// Generate atmosphere
+    ///
+    /// Generates a random atmosphere that can be mostly nitrogen, CO₂ or oxygen.
     fn generate_atmosphere() -> Atmosphere {
         let pressure = if rand::thread_rng().gen_range(0, 5) == 0 {
                 rand::thread_rng().gen_range(0_f64, 1e-5_f64)
@@ -353,7 +358,43 @@ impl<'p>  Planet<'p> {
 
         Atmosphere::new(pressure, co2, co, n2, o2, ar, so2, ne, ch4, he)
 
-        // $this->_greenhouse();
+        // TODO: greenhouse effect
+    }
+
+    /// Generate properties
+    ///
+    /// This function generates the basic properties ob the planet. The mass and the radius.
+    fn generate_properties(planet_type: &PlanetType) -> (f64, f64) {
+        match *planet_type {
+            PlanetType::Rocky => {
+                let radius = rand::thread_rng().gen_range(2e+6_f64, 15e+6_f64); // m
+
+                let density = if radius < 75e+5_f64 {
+                    rand::thread_rng().gen_range(2_700_f64, 6_500_f64) // kg/m³
+                } else {
+                    rand::thread_rng().gen_range(5_500_f64, 15_000_f64) // kg/m³
+                };
+
+                let mut mass = 4_f64*PI*radius.powi(3)*density/3_f64; // kg
+                if mass > 9e+25_f64 {
+                    mass = rand::thread_rng().gen_range(5e+25_f64, 9e+25_f64) // kg
+                }
+
+                (mass, radius)
+            },
+            PlanetType::Gaseous => {
+                let radius = rand::thread_rng().gen_range(2e+7_f64, 1.5e+8_f64); // m
+
+                let mut mass = (radius/1e+3_f64).powf(1.3)*1.445e+21-5e+26; // kg
+                mass = rand::thread_rng().gen_range(mass/5_f64, mass*5_f64);
+
+                if mass > 1e+28 && rand::thread_rng().gen_range(0, 3001) != 0 {
+                    mass /= 10_f64;
+                }
+
+                (mass, radius)
+            }
+        }
     }
 }
 

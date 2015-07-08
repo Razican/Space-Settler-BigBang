@@ -24,8 +24,8 @@ fn main() {
     println!("\tGalaxy: {}", star.get_galaxy_id());
     println!("\tOrbit: {} light years", star.get_orbit());
     println!("\tClass: {:?}", star.get_class());
-    println!("\tMass: {} suns", star.get_mass()/consts::SUN_MASS);
-    println!("\tRadius: {} suns", star.get_radius()/consts::SUN_RADIUS);
+    println!("\tMass: {} M☉", star.get_mass()/consts::SUN_MASS);
+    println!("\tRadius: {} R☉", star.get_radius()/consts::SUN_RADIUS);
     println!("\tDensity: {} kg/m³", star.get_density());
     println!("\tTemperature: {} K", star.get_temperature());
     println!("\tLuminosity: {} suns", star.get_luminosity()/consts::SUN_LUMINOSITY);
@@ -41,6 +41,14 @@ fn main() {
         println!("\tPosition in solar system: {}", planet.get_orbit().get_position());
         println!("\tPlanet type: {:?}", planet.get_type());
         println!("\tAlbedo: {}", planet.get_albedo());
+        if planet.get_mass() > 50_f64*consts::EARTH_MASS {
+            println!("\tMass: {} Mj", planet.get_mass()/consts::JUPITER_MASS);
+            println!("\tRadius: {} Rj", planet.get_radius()/consts::JUPITER_RADIUS);
+        } else {
+            println!("\tMass: {} M⊕", planet.get_mass()/consts::EARTH_MASS);
+            println!("\tRadius: {} R⊕", planet.get_radius()/consts::EARTH_RADIUS);
+        }
+        println!("\tDensity: {} kg/m³", planet.get_density());
         println!("\tOrbit:");
         println!("\t\tSemimajor axis: {} AU", planet.get_orbit().get_sma()/AU);
         println!("\t\tEccentricity: {}", planet.get_orbit().get_ecc());
