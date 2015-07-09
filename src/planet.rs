@@ -23,7 +23,8 @@ pub struct Planet<'p> {
     planet_type: PlanetType,
     // soil: Soil,
     // life: Life,
-    albedo: f64,
+    bond_albedo: f64,
+    geometric_albedo: f64,
     mass: f64,
     radius: f64,
     min_temp: f64,
@@ -128,14 +129,15 @@ impl<'p>  Planet<'p> {
         let planet_type = Planet::generate_type(orb.get_sma(), st.get_luminosity());
         let atm = if planet_type == PlanetType::Rocky {Some(Planet::generate_atmosphere())} else {None};
         let (mass, radius) = Planet::generate_properties(&planet_type);
-        let alb = 0.306;
+        let (bond_alb, geo_alb) = Planet::generate_albedo(&planet_type, &atm);
+        let geo_alb = 0.306;
         let min_temp = 0_f64;
         let max_temp = 0_f64;
         let avg_temp = 0_f64;
 
-        Planet {orbit: orb, atmosphere: atm, planet_type: planet_type, albedo: alb, mass: mass,
-            radius: radius, min_temp: min_temp, max_temp: max_temp,
-            avg_temp: avg_temp}
+        Planet {orbit: orb, atmosphere: atm, planet_type: planet_type, bond_albedo: bond_alb,
+            geometric_albedo: geo_alb, mass: mass, radius: radius, min_temp: min_temp,
+            max_temp: max_temp, avg_temp: avg_temp}
     }
 
     /// Get `Orbit`
@@ -159,12 +161,22 @@ impl<'p>  Planet<'p> {
         &self.planet_type
     }
 
-    /// Get albedo
+    /// Get Bond albedo
     ///
-    /// Gets the albedo of the planet. The albedo is the reflectivity of the planet, or in other
-    /// words, the percentage of light reflected by the planet, from 0 to 1.
-    pub fn get_albedo(&self) -> f64 {
-        self.albedo
+    /// Gets the Bond albedo of the planet. The Bond albedo is the reflectivity of the planet, or in
+    /// other words, the percentage of light reflected by the planet, from 0 to 1.
+    pub fn get_bond_albedo(&self) -> f64 {
+        self.bond_albedo
+    }
+
+    /// Get geometric albedo
+    ///
+    /// Gets the geometric albedo of the planet. The geometric albedo is the reflectivity of the
+    /// planet, but only taking into account the light that reflects directly back to the emission,
+    /// or in other words, how bright an observer would see the planet if looking at it directly
+    /// from the light source, from 0 to 1.
+    pub fn get_geometric_albedo(&self) -> f64 {
+        self.geometric_albedo
     }
 
     /// Get mass
@@ -416,6 +428,27 @@ impl<'p>  Planet<'p> {
 
                 (mass, radius)
             }
+        }
+    }
+
+    /// Generate albedo
+    ///
+    /// This function generates the basic properties ob the planet. The mass and the radius.
+    fn generate_albedo(planet_type: &PlanetType, atm: &Option<Atmosphere>) -> (f64, f64) {
+        match *planet_type {
+            PlanetType::Rocky => {
+                // TODO
+                let bond = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
+                let geometric = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
+
+                (bond, geometric)
+            },
+            PlanetType::Gaseous => {
+                let bond = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
+                let geometric = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
+
+                (bond, geometric)
+            },
         }
     }
 }
@@ -683,13 +716,14 @@ mod tests {
             0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
 
         let planet = Planet {orbit: orb, atmosphere: Some(atm), planet_type: PlanetType::Rocky,
-            albedo: 0.306_f64, mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64,
-            max_temp: 329.85_f64, avg_temp: 289.15_f64};
+            bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64, mass: 5.9726e+24_f64,
+            radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
 
         assert_eq!(5, planet.get_orbit().get_star().get_id());
         assert_eq!(101325_f64, planet.get_atmosphere().unwrap().get_pressure());
         assert_eq!(&PlanetType::Rocky, planet.get_type());
-        assert_eq!(0.306_f64, planet.get_albedo());
+        assert_eq!(0.306_f64, planet.get_bond_albedo());
+        assert_eq!(0.367_f64, planet.get_geometric_albedo());
         assert_eq!(5.9726e+24_f64, planet.get_mass());
         assert_eq!(6.371e+6_f64, planet.get_radius());
         assert!(planet.is_roche_ok());
@@ -707,8 +741,8 @@ mod tests {
             0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
 
         let planet = Planet {orbit: orb, atmosphere: Some(atm), planet_type: PlanetType::Rocky,
-            albedo: 0.306_f64, mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64,
-            max_temp: 329.85_f64, avg_temp: 289.15_f64};
+            bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64, mass: 5.9726e+24_f64,
+            radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
 
         assert!(10.8321e+20_f64*0.999 < planet.get_volume() && 10.8321e+20_f64*1.001 > planet.get_volume());
     }
@@ -722,8 +756,8 @@ mod tests {
             0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
 
         let planet = Planet {orbit: orb, atmosphere: Some(atm), planet_type: PlanetType::Rocky,
-            albedo: 0.306_f64, mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64,
-            max_temp: 329.85_f64, avg_temp: 289.15_f64};
+            bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64, mass: 5.9726e+24_f64,
+            radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
 
         assert!(5_514_f64*0.999 < planet.get_density() && 5_514_f64*1.001 > planet.get_density());
     }

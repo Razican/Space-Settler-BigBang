@@ -42,7 +42,8 @@ fn main() {
             println!("\tStar ID: {}", planet.get_orbit().get_star().get_id());
             println!("\tPosition in solar system: {}", planet.get_orbit().get_position());
             println!("\tPlanet type: {:?}", planet.get_type());
-            println!("\tAlbedo: {}", planet.get_albedo());
+            println!("\tBond albedo: {}%", planet.get_bond_albedo()*100_f64);
+            println!("\tGeometric albedo: {}%", planet.get_geometric_albedo()*100_f64);
             if planet.get_mass() > 50_f64*consts::EARTH_MASS {
                 println!("\tMass: {} Mj", planet.get_mass()/consts::JUPITER_MASS);
                 println!("\tRadius: {} Rj", planet.get_radius()/consts::JUPITER_RADIUS);
