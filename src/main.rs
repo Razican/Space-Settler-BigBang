@@ -12,7 +12,7 @@ pub mod consts;
 pub mod utils;
 
 use star::Star;
-use planet::Planet;
+use planet::{Planet, PlanetType};
 use consts::*;
 use utils::*;
 
@@ -32,9 +32,9 @@ fn main() {
 
     let num_bodies = star.generate_num_bodies();
 
-    if num_bodies > 2 {
+    if num_bodies > 3 {
         let (tb_m, tb_n) = star.generate_titius_bode(num_bodies);
-        let planet = Planet::new(&star, tb_m, tb_n, 3, 0_f64);
+        let planet = Planet::new(&star, tb_m, tb_n, 4, 0_f64);
 
         if planet.is_roche_ok() {
             println!("\nCreated a new Planet:");
@@ -52,6 +52,11 @@ fn main() {
                 println!("\tRadius: {} R⊕", planet.get_radius()/consts::EARTH_RADIUS);
             }
             println!("\tDensity: {} kg/m³", planet.get_density());
+            if planet.get_type() == &PlanetType::Rocky {
+                println!("\tMinimum temperature: {}°C", planet.get_min_temp()-273.15);
+                println!("\tAverage temperature: {}°C", planet.get_avg_temp()-273.15);
+                println!("\tMaximum temperature: {}°C", planet.get_max_temp()-273.15);
+            }
             println!("\tOrbit:");
             println!("\t\tSemimajor axis: {} AU", planet.get_orbit().get_sma()/AU);
             println!("\t\tEccentricity: {}", planet.get_orbit().get_ecc());

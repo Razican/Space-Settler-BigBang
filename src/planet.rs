@@ -148,9 +148,9 @@ impl<'p>  Planet<'p> {
         let orb = Planet::generate_orbit(st, m, n, position, last_sm_a);
 
         let planet_type = Planet::generate_type(orb.get_sma(), st.get_luminosity());
-        let atm = if planet_type == PlanetType::Rocky {Some(Planet::generate_atmosphere())} else {None};
         let mut ground = if planet_type == PlanetType::Rocky {Some(Planet::generate_ground(None))} else {None};
         let (mass, radius) = Planet::generate_properties(&planet_type);
+        let atm = if planet_type == PlanetType::Rocky {Some(Planet::generate_atmosphere(mass))} else {None};
         let (mut bond_alb, mut geo_alb) = Planet::calculate_albedo(&planet_type, atm.as_ref(), ground.as_ref());
         let mut eff_temp = Planet::calculate_t_eff(st, orb.get_sma(), bond_alb);
         let greenhouse = if planet_type == PlanetType::Rocky {Planet::calculate_greenhouse(atm.as_ref())
@@ -376,7 +376,7 @@ impl<'p>  Planet<'p> {
         if sma/(AU*2_f64) < (luminosity/SUN_LUMINOSITY).sqrt() {
             if rand::thread_rng().gen_range(0, 2) == 0 {PlanetType::Gaseous} else {PlanetType::Rocky}
         } else if luminosity > 1.923e+27_f64 && // 5*SUN_LUMINOSITY
-            sma/AU < luminosity/SUN_LUMINOSITY.sqrt()*50_f64 {
+            sma/AU < (luminosity/SUN_LUMINOSITY).sqrt()*50_f64 {
             if rand::thread_rng().gen_range(0, 4) == 0 {PlanetType::Rocky} else {PlanetType::Gaseous}
         } else if sma/AU < luminosity/SUN_LUMINOSITY*200_f64 {
             if rand::thread_rng().gen_range(0, 2) == 0 {PlanetType::Gaseous} else {PlanetType::Rocky}
@@ -388,16 +388,16 @@ impl<'p>  Planet<'p> {
     /// Generate atmosphere
     ///
     /// Generates a random atmosphere that can be mostly nitrogen, CO₂ or oxygen.
-    fn generate_atmosphere() -> Atmosphere {
+    fn generate_atmosphere(mass: f64) -> Atmosphere {
         let pressure = if rand::thread_rng().gen_range(0, 5) == 0 {
-                rand::thread_rng().gen_range(0_f64, 1e-5_f64)
+                rand::thread_rng().gen_range(0_f64, 0.01_f64)
             } else if rand::thread_rng().gen_range(0, 2) == 0 {
-                rand::thread_rng().gen_range(0_f64, 100_f64)
+                rand::thread_rng().gen_range(0_f64, 150_000_f64)
             } else if rand::thread_rng().gen_range(0, 5) != 0 {
-                rand::thread_rng().gen_range(0_f64, 3_000_f64)
+                rand::thread_rng().gen_range(0_f64, 3_000_000_f64)
             } else {
-                rand::thread_rng().gen_range(0_f64, 100_000_f64)
-            };
+                rand::thread_rng().gen_range(0_f64, 200_000_000_f64)
+            } * mass/EARTH_MASS;
 
         let mut left = 1_f64;
         let mut co2 = 0_f64;
@@ -679,7 +679,8 @@ impl<'o> Orbit<'o> {
     ///
     /// Gets the day length of the body, in seconds (*s*).
     pub fn get_day(&self) -> f64 {
-        if self.ax_tilt > 1.3962634 && self.ax_tilt < 1.3962634 {
+        if (self.ax_tilt > 1.308997_f64 && self.ax_tilt < 1.832596_f64) ||
+        (self.ax_tilt > 4.450589_f64 && self.ax_tilt < 4.974188_f64) {
             self.get_orb_period()
         } else {
             if self.rot_period > 0_f64 {
