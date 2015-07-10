@@ -149,13 +149,34 @@ impl<'p>  Planet<'p> {
 
         let planet_type = Planet::generate_type(orb.get_sma(), st.get_luminosity());
         let atm = if planet_type == PlanetType::Rocky {Some(Planet::generate_atmosphere())} else {None};
-        let ground = if planet_type == PlanetType::Rocky {Some(Planet::generate_ground())} else {None};
+        let mut ground = if planet_type == PlanetType::Rocky {Some(Planet::generate_ground(None))} else {None};
         let (mass, radius) = Planet::generate_properties(&planet_type);
-        let (bond_alb, geo_alb) = Planet::calculate_albedo(&planet_type, atm.as_ref(), ground.as_ref());
-        let geo_alb = 0.306;
-        let min_temp = 0_f64;
-        let max_temp = 0_f64;
-        let avg_temp = 0_f64;
+        let (mut bond_alb, mut geo_alb) = Planet::calculate_albedo(&planet_type, atm.as_ref(), ground.as_ref());
+        let mut eff_temp = Planet::calculate_t_eff(st, orb.get_sma(), bond_alb);
+        let greenhouse = if planet_type == PlanetType::Rocky {Planet::calculate_greenhouse(atm.as_ref())
+        } else {1_f64};
+        let mut avg_temp = eff_temp*greenhouse;
+        let (mut min_temp, mut max_temp) = if planet_type == PlanetType::Rocky {
+            Planet::calculate_surface_temp(avg_temp, atm.as_ref().unwrap().get_pressure(), &orb)
+        } else {(avg_temp, avg_temp)};
+        if planet_type == PlanetType::Rocky {
+            while {
+                let before_temp = eff_temp;
+
+                ground = Some(Planet::generate_ground(Some((min_temp, max_temp, atm.as_ref().unwrap()))));
+                let (new_bond_alb, new_geo_alb) = Planet::calculate_albedo(&planet_type, atm.as_ref(), ground.as_ref());
+                eff_temp = Planet::calculate_t_eff(st, orb.get_sma(), new_bond_alb);
+                avg_temp = eff_temp*greenhouse;
+                let (new_min_temp, new_max_temp) = Planet::calculate_surface_temp(avg_temp,
+                    atm.as_ref().unwrap().get_pressure(), &orb);
+                bond_alb = new_bond_alb;
+                geo_alb = new_geo_alb;
+                min_temp = new_min_temp;
+                max_temp = new_max_temp;
+
+                (1_f64-eff_temp/before_temp).abs() > 0.01
+            } {}
+        }
 
         Planet {orbit: orb, atmosphere: atm, ground: ground, planet_type: planet_type,
             bond_albedo: bond_alb, geometric_albedo: geo_alb, mass: mass, radius: radius,
@@ -462,10 +483,16 @@ impl<'p>  Planet<'p> {
         }
     }
 
-    fn generate_ground() -> Ground {
-        // TODO
-        Ground::new(0.0177, 0.6903, 0.0584, 0.2336)
+    fn generate_ground(base: Option<(f64, f64, &Atmosphere)>) -> Ground {
+        if base.is_some() {
+            // TODO: Check water state
+            Ground::new(0.0177, 0.6903, 0.0584, 0.2336)
+        } else {
+            Ground::new(0.0177, 0.6903, 0.0584, 0.2336)
+        }
     }
+
+    // ----------  calculators  ---------
 
     /// Calculate atmosphere albedo
     ///
@@ -515,6 +542,34 @@ impl<'p>  Planet<'p> {
                 (bond, geometric)
             }
         }
+    }
+
+    fn calculate_t_eff(st: &Star, sma: f64, albedo: f64) -> f64 {
+        let solar_constant = st.get_luminosity()/(4_f64*PI*sma.powi(2)); // W/m²
+
+        (solar_constant*(1_f64-albedo)/(4_f64*BOLTZ)).powf(1_f64/4_f64)
+    }
+
+    fn calculate_greenhouse(atm: Option<&Atmosphere>) -> f64 {
+        let atmosphere = atm.unwrap();
+
+        1_f64 + (atmosphere.get_co2().powi(6)/835_f64 +
+            atmosphere.get_h2o().sqrt()/250_f64 +
+            atmosphere.get_ch4().powf(0.25_f64)/1_000_f64) * atmosphere.get_pressure().sqrt()
+    }
+
+    fn calculate_surface_temp(avg_temp: f64, atm_pressure: f64, orbit: &Orbit) -> (f64, f64) {
+        let min_temp = avg_temp*(1_f64-orbit.get_day().powf(1_f64/8_f64)/8.25_f64*
+                        (1_f64-atm_pressure.powf(1_f64/3_f64)/300_f64)*
+                        (1_f64-orbit.get_ecc())*
+                        ((orbit.get_ax_tilt()-PI)/PI).abs());
+
+        let max_temp = avg_temp*(1_f64+orbit.get_day().powf(1_f64/2.1_f64)*
+                        (1_f64-(atm_pressure*1000_f64).powf(1_f64/2.3_f64)/22_000_f64)*
+                        (1_f64-orbit.get_ecc().powi(4))*
+                        ((orbit.get_ax_tilt()-PI)/PI).abs()/1_150_f64);
+
+        (min_temp, max_temp)
     }
 }
 
