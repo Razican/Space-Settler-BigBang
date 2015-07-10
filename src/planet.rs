@@ -21,7 +21,8 @@ pub struct Planet<'p> {
     orbit: Orbit<'p>,
     atmosphere: Option<Atmosphere>,
     planet_type: PlanetType,
-    // soil: Soil,
+    ground: Option<Ground>,
+    // crust: Crust,
     // life: Life,
     bond_albedo: f64,
     geometric_albedo: f64,
@@ -31,7 +32,6 @@ pub struct Planet<'p> {
     max_temp: f64,
     avg_temp: f64
     // habitable: bool,
-    // double_planet: bool,
 }
 
 /// PlanetType enumeration
@@ -84,6 +84,7 @@ pub struct Orbit<'o> {
 /// the body.
 pub struct Atmosphere {
     pressure: f64,
+    h2o: f64,
     co2: f64,
     co: f64,
     n2: f64,
@@ -95,10 +96,30 @@ pub struct Atmosphere {
     he: f64,
 }
 
-// struct Soil {
+/// Ground structure
+///
+/// This structure represents the composition of the ground of the planet. It will be none for
+/// gaseous planets and for rocky ones it will contain the surface composition in 3 variables
+/// (water, snow and land) in percentages.
+pub struct Ground {
+    fresh_water: f64,
+    ocean_water: f64,
+    snow: f64,
+    land: f64,
+}
+
+/// Crust structure
+///
+/// This structure represents the crust composition of the planet, time in kg per element. It will
+/// only contain the composition of the crust of the planet, that will allow for the players to dig
+/// and take resources.
+// pub struct Crust {
 // }
 
-// struct Life {
+/// Life structure
+///
+/// This structure represents the life in the planet.
+// pub struct Life {
 // }
 
 impl<'p>  Planet<'p> {
@@ -128,16 +149,17 @@ impl<'p>  Planet<'p> {
 
         let planet_type = Planet::generate_type(orb.get_sma(), st.get_luminosity());
         let atm = if planet_type == PlanetType::Rocky {Some(Planet::generate_atmosphere())} else {None};
+        let ground = if planet_type == PlanetType::Rocky {Some(Planet::generate_ground())} else {None};
         let (mass, radius) = Planet::generate_properties(&planet_type);
-        let (bond_alb, geo_alb) = Planet::generate_albedo(&planet_type, &atm);
+        let (bond_alb, geo_alb) = Planet::calculate_albedo(&planet_type, atm.as_ref(), ground.as_ref());
         let geo_alb = 0.306;
         let min_temp = 0_f64;
         let max_temp = 0_f64;
         let avg_temp = 0_f64;
 
-        Planet {orbit: orb, atmosphere: atm, planet_type: planet_type, bond_albedo: bond_alb,
-            geometric_albedo: geo_alb, mass: mass, radius: radius, min_temp: min_temp,
-            max_temp: max_temp, avg_temp: avg_temp}
+        Planet {orbit: orb, atmosphere: atm, ground: ground, planet_type: planet_type,
+            bond_albedo: bond_alb, geometric_albedo: geo_alb, mass: mass, radius: radius,
+            min_temp: min_temp, max_temp: max_temp, avg_temp: avg_temp}
     }
 
     /// Get `Orbit`
@@ -152,6 +174,13 @@ impl<'p>  Planet<'p> {
     /// Gets the atmosphere information of the planet.
     pub fn get_atmosphere(&self) -> Option<&Atmosphere> {
         self.atmosphere.as_ref()
+    }
+
+    /// Get `Ground`
+    ///
+    /// Gets the ground information of the planet.
+    pub fn get_ground(&self) -> Option<&Ground> {
+        self.ground.as_ref()
     }
 
     /// Get planet type
@@ -388,9 +417,11 @@ impl<'p>  Planet<'p> {
         left -= so2;
         let ch4 = rand::thread_rng().gen_range(0_f64, left);
         left -= ch4;
-        let he = left;
+        let he = rand::thread_rng().gen_range(0_f64, left);
+        left -= he;
+        let h2o = left;
 
-        Atmosphere::new(pressure, co2, co, n2, o2, ar, so2, ne, ch4, he)
+        Atmosphere::new(pressure, h2o, co2, co, n2, o2, ar, so2, ne, ch4, he)
 
         // TODO: greenhouse effect
     }
@@ -431,24 +462,58 @@ impl<'p>  Planet<'p> {
         }
     }
 
-    /// Generate albedo
+    fn generate_ground() -> Ground {
+        // TODO
+        Ground::new(0.0177, 0.6903, 0.0584, 0.2336)
+    }
+
+    /// Calculate atmosphere albedo
     ///
-    /// This function generates the basic properties ob the planet. The mass and the radius.
-    fn generate_albedo(planet_type: &PlanetType, atm: &Option<Atmosphere>) -> (f64, f64) {
+    /// This function calculates the albedo produced by the atmosphere. It will not be the final
+    /// albedo, since it needs the ground albedo to do the final calculation depending on the
+    /// atmospheric pressure.
+    fn calculate_atmosphere_albedo(atm: &Atmosphere) -> (f64, f64) {
+            // TODO
+            let bond = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
+            let geometric = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
+
+            (bond, geometric)
+    }
+
+    /// Calculate ground albedo
+    ///
+    /// This function calculates the albedo produced by the ground. It will not be the final albedo
+    /// since it needs the atmospheric albedo and the atmospheric pressure to be able to calculate
+    /// the final one.
+    fn calculate_ground_albedo(ground: &Ground) -> (f64, f64) {
+        // TODO
+        (0.3, 0.36)
+    }
+
+    /// Calculate final albedo
+    ///
+    /// This function calculates the final albedo for the body. This albedo will be calculated
+    /// depending on the contribution of the atmosphere to the final albedo.
+    fn calculate_albedo(planet_type: &PlanetType, atm: Option<&Atmosphere>, ground: Option<&Ground>) -> (f64, f64) {
         match *planet_type {
             PlanetType::Rocky => {
-                // TODO
-                let bond = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
-                let geometric = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
+                let (ground_bond, ground_geom) = Planet::calculate_ground_albedo(ground.unwrap());
+                let (atm_bond, atm_geom) = Planet::calculate_atmosphere_albedo(atm.unwrap());
 
-                (bond, geometric)
+                match atm.unwrap().get_pressure() {
+                    0_f64...250_f64 => {(ground_bond, ground_geom)},
+                    250_f64...750_f64 => {(ground_bond*0.75+atm_bond*0.25, ground_geom*0.75+atm_geom*0.25)},
+                    750_f64...1_250_f64 => {(ground_bond*0.50+atm_bond*0.50, ground_geom*0.50+atm_geom*0.50)},
+                    1_250_f64...2_000_f64 => {(ground_bond*0.25+atm_bond*0.75, ground_geom*0.25+atm_geom*0.75)},
+                    _ => {(atm_bond, atm_geom)}
+                }
             },
             PlanetType::Gaseous => {
-                let bond = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
-                let geometric = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
+                let bond = rand::thread_rng().gen_range(0.25_f64, 0.4_f64);
+                let geometric = rand::thread_rng().gen_range(0.35_f64, 0.55_f64);
 
                 (bond, geometric)
-            },
+            }
         }
     }
 }
@@ -580,9 +645,9 @@ impl Atmosphere {
     ///
     /// It creates a new atmosphere structure with all the percentages of the composition and its
     /// pressure.
-    fn new(pressure: f64, co2: f64, co: f64, n2: f64, o2: f64, ar: f64, so2: f64,
+    fn new(pressure: f64, h2o: f64, co2: f64, co: f64, n2: f64, o2: f64, ar: f64, so2: f64,
         ne: f64, ch4: f64, he: f64) -> Atmosphere {
-        Atmosphere {pressure: pressure, co2: co2, co: co, n2: n2, o2: o2, ar: ar,
+        Atmosphere {pressure: pressure, h2o: h2o, co2: co2, co: co, n2: n2, o2: o2, ar: ar,
             so2: so2, ne: ne, ch4: ch4, he: he}
     }
 
@@ -591,6 +656,13 @@ impl Atmosphere {
     /// Gets the pressure of the atmosphere in Pascals (*Pa*).
     pub fn get_pressure(&self) -> f64 {
         self.pressure
+    }
+
+    /// Get H₂O
+    ///
+    /// Gets the percentage of H₂O (water vapour) in the atmosphere, from 0 to 1.
+    pub fn get_h2o(&self) -> f64 {
+        self.h2o
     }
 
     /// Get CO₂
@@ -657,6 +729,44 @@ impl Atmosphere {
     }
 }
 
+impl Ground {
+    /// Constructs a new `Ground` structure.
+    ///
+    /// It creates a new ground structure with the needed information for representing the ground
+    /// of the planet.
+    fn new(fresh_water: f64, ocean_water: f64, snow: f64, land: f64) -> Ground {
+        Ground {fresh_water: fresh_water, ocean_water: ocean_water, snow: snow, land: land}
+    }
+
+    /// Get fresh water
+    ///
+    /// Gets the percentage of fresh water on the surface of the planet. From 0 to 1.
+    pub fn get_fresh_water(&self) -> f64 {
+        self.fresh_water
+    }
+
+    /// Get ocean water
+    ///
+    /// Gets the percentage of ocean water on the surface of the planet. From 0 to 1.
+    pub fn get_ocean_water(&self) -> f64 {
+        self.ocean_water
+    }
+
+    /// Get snow
+    ///
+    /// Gets the percentage of the surface of the planet covered in snow. From 0 to 1.
+    pub fn get_snow(&self) -> f64 {
+        self.snow
+    }
+
+    /// Get land
+    ///
+    /// Gets the percentage of land on the surface of the planet. From 0 to 1.
+    pub fn get_land(&self) -> f64 {
+        self.land
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Planet;
@@ -684,10 +794,11 @@ mod tests {
 
     #[test]
     fn it_atm_getters() {
-        let atm = super::Atmosphere::new(101325_f64, 0.0397_f64, 0_f64, 78.084_f64, 20.946_f64,
-            0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
+        let atm = super::Atmosphere::new(101325_f64, 0.01_f64, 0.0397_f64, 0_f64, 78.084_f64,
+            20.946_f64, 0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
 
         assert_eq!(101325_f64,  atm.get_pressure());
+        assert_eq!(0.01_f64,  atm.get_h2o());
         assert_eq!(0.0397_f64,  atm.get_co2());
         assert_eq!(0_f64,       atm.get_co());
         assert_eq!(78.084_f64,  atm.get_n2());
@@ -697,6 +808,16 @@ mod tests {
         assert_eq!(0.00181_f64, atm.get_ne());
         assert_eq!(0.00017_f64, atm.get_ch4());
         assert_eq!(0.00052_f64, atm.get_he());
+    }
+
+    #[test]
+    fn it_ground_getters() {
+        let ground = super::Ground::new(0.0177, 0.6903, 0.0584, 0.2336);
+
+        assert_eq!(0.0177_f64, ground.get_fresh_water());
+        assert_eq!(0.6903_f64, ground.get_ocean_water());
+        assert_eq!(0.0584_f64, ground.get_snow());
+        assert_eq!(0.2336_f64, ground.get_land());
     }
 
     #[test]
@@ -712,15 +833,18 @@ mod tests {
         let st = Star::new(4, 6);
         let orb = super::Orbit::new(&st, 3, 0.5_f64, 150e+9_f64, 1.5_f64, 1.2_f64, 1.3_f64, 1.4_f64,
             31_558_118.4_f64, 1.1_f64, 80_600_f64);
-        let atm = super::Atmosphere::new(101325_f64, 0.0397_f64, 0_f64, 78.084_f64, 20.946_f64,
-            0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
+        let atm = super::Atmosphere::new(101325_f64, 0.01_f64, 0.0397_f64, 0_f64, 78.084_f64,
+            20.946_f64, 0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
+        let ground = super::Ground::new(0.0177, 0.6903, 0.0584, 0.2336);
 
-        let planet = Planet {orbit: orb, atmosphere: Some(atm), planet_type: PlanetType::Rocky,
-            bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64, mass: 5.9726e+24_f64,
-            radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
+        let planet = Planet {orbit: orb, atmosphere: Some(atm), ground: Some(ground),
+            planet_type: PlanetType::Rocky, bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64,
+            mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64,
+            avg_temp: 289.15_f64};
 
         assert_eq!(5, planet.get_orbit().get_star().get_id());
         assert_eq!(101325_f64, planet.get_atmosphere().unwrap().get_pressure());
+        assert_eq!(0.6903, planet.get_ground().unwrap().get_ocean_water());
         assert_eq!(&PlanetType::Rocky, planet.get_type());
         assert_eq!(0.306_f64, planet.get_bond_albedo());
         assert_eq!(0.367_f64, planet.get_geometric_albedo());
@@ -737,12 +861,14 @@ mod tests {
         let st = Star::new(4, 6);
         let orb = super::Orbit::new(&st, 3, 0.5_f64, 150e+9_f64, 1.5_f64, 1.2_f64, 1.3_f64, 1.4_f64,
             31_558_118.4_f64, 1.1_f64, 80_600_f64);
-        let atm = super::Atmosphere::new(101325_f64, 0.0397_f64, 0_f64, 78.084_f64, 20.946_f64,
-            0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
+        let atm = super::Atmosphere::new(101325_f64, 0.01_f64, 0.0397_f64, 0_f64, 78.084_f64,
+            20.946_f64, 0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
+        let ground = super::Ground::new(0.0177, 0.6903, 0.0584, 0.2336);
 
-        let planet = Planet {orbit: orb, atmosphere: Some(atm), planet_type: PlanetType::Rocky,
-            bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64, mass: 5.9726e+24_f64,
-            radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
+        let planet = Planet {orbit: orb, atmosphere: Some(atm), ground: Some(ground),
+            planet_type: PlanetType::Rocky, bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64,
+            mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64,
+            avg_temp: 289.15_f64};
 
         assert!(10.8321e+20_f64*0.999 < planet.get_volume() && 10.8321e+20_f64*1.001 > planet.get_volume());
     }
@@ -752,12 +878,14 @@ mod tests {
         let st = Star::new(4, 6);
         let orb = super::Orbit::new(&st, 3, 0.5_f64, 150e+9_f64, 1.5_f64, 1.2_f64, 1.3_f64, 1.4_f64,
             31_558_118.4_f64, 1.1_f64, 80_600_f64);
-        let atm = super::Atmosphere::new(101325_f64, 0.0397_f64, 0_f64, 78.084_f64, 20.946_f64,
-            0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
+        let atm = super::Atmosphere::new(101325_f64, 0.01_f64, 0.0397_f64, 0_f64, 78.084_f64,
+            20.946_f64, 0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
+        let ground = super::Ground::new(0.0177, 0.6903, 0.0584, 0.2336);
 
-        let planet = Planet {orbit: orb, atmosphere: Some(atm), planet_type: PlanetType::Rocky,
-            bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64, mass: 5.9726e+24_f64,
-            radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
+        let planet = Planet {orbit: orb, atmosphere: Some(atm), ground: Some(ground),
+            planet_type: PlanetType::Rocky, bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64,
+            mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64,
+            avg_temp: 289.15_f64};
 
         assert!(5_514_f64*0.999 < planet.get_density() && 5_514_f64*1.001 > planet.get_density());
     }
