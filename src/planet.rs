@@ -21,13 +21,14 @@ pub struct Planet<'p> {
     orbit: Orbit<'p>,
     atmosphere: Option<Atmosphere>,
     planet_type: PlanetType,
-    ground: Option<Ground>,
+    surface: Option<Surface>,
     // crust: Crust,
     // life: Life,
     bond_albedo: f64,
     geometric_albedo: f64,
     mass: f64,
     radius: f64,
+    eff_temp: f64,
     min_temp: f64,
     max_temp: f64,
     avg_temp: f64
@@ -96,12 +97,12 @@ pub struct Atmosphere {
     he: f64,
 }
 
-/// Ground structure
+/// Surface structure
 ///
-/// This structure represents the composition of the ground of the planet. It will be none for
-/// gaseous planets and for rocky ones it will contain the surface composition in 3 variables
-/// (water, snow and land) in percentages.
-pub struct Ground {
+/// This structure represents the composition of the surface of the planet. Gaseous planets will not
+/// have it, while rocky for ones it will contain the surface composition in 3 variables (water,
+/// snow and land) in percentages.
+pub struct Surface {
     fresh_water: f64,
     ocean_water: f64,
     snow: f64,
@@ -148,39 +149,52 @@ impl<'p>  Planet<'p> {
         let orb = Planet::generate_orbit(st, m, n, position, last_sm_a);
 
         let planet_type = Planet::generate_type(orb.get_sma(), st.get_luminosity());
-        let mut ground = if planet_type == PlanetType::Rocky {Some(Planet::generate_ground(None))} else {None};
+        let mut surface = if planet_type == PlanetType::Rocky {
+            Some(Planet::generate_surface(None))
+        } else {None};
         let (mass, radius) = Planet::generate_properties(&planet_type);
-        let atm = if planet_type == PlanetType::Rocky {Some(Planet::generate_atmosphere(mass))} else {None};
-        let (mut bond_alb, mut geo_alb) = Planet::calculate_albedo(&planet_type, atm.as_ref(), ground.as_ref());
+
+        let atm = if planet_type == PlanetType::Rocky {
+            Some(Planet::generate_atmosphere(mass))
+        } else {None};
+        let (mut bond_alb, mut geo_alb) = Planet::calculate_albedo(&planet_type, atm.as_ref(),
+            surface.as_ref());
+
         let mut eff_temp = Planet::calculate_t_eff(st, orb.get_sma(), bond_alb);
-        let greenhouse = if planet_type == PlanetType::Rocky {Planet::calculate_greenhouse(atm.as_ref())
+        let greenhouse = if planet_type == PlanetType::Rocky {
+            Planet::calculate_greenhouse(atm.as_ref())
         } else {1_f64};
         let mut avg_temp = eff_temp*greenhouse;
         let (mut min_temp, mut max_temp) = if planet_type == PlanetType::Rocky {
             Planet::calculate_surface_temp(avg_temp, atm.as_ref().unwrap().get_pressure(), &orb)
         } else {(avg_temp, avg_temp)};
+
         if planet_type == PlanetType::Rocky {
             while {
                 let before_temp = eff_temp;
 
-                ground = Some(Planet::generate_ground(Some((min_temp, max_temp, atm.as_ref().unwrap()))));
-                let (new_bond_alb, new_geo_alb) = Planet::calculate_albedo(&planet_type, atm.as_ref(), ground.as_ref());
+                surface = Some(Planet::generate_surface(
+                    Some((min_temp, avg_temp, max_temp, atm.as_ref().unwrap()))));
+                let (new_bond_alb, new_geo_alb) = Planet::calculate_albedo(
+                    &planet_type, atm.as_ref(), surface.as_ref());
+
                 eff_temp = Planet::calculate_t_eff(st, orb.get_sma(), new_bond_alb);
                 avg_temp = eff_temp*greenhouse;
                 let (new_min_temp, new_max_temp) = Planet::calculate_surface_temp(avg_temp,
                     atm.as_ref().unwrap().get_pressure(), &orb);
+
                 bond_alb = new_bond_alb;
                 geo_alb = new_geo_alb;
                 min_temp = new_min_temp;
                 max_temp = new_max_temp;
 
                 (1_f64-eff_temp/before_temp).abs() > 0.01
-            } {}
+            }{}
         }
 
-        Planet {orbit: orb, atmosphere: atm, ground: ground, planet_type: planet_type,
+        Planet {orbit: orb, atmosphere: atm, surface: surface, planet_type: planet_type,
             bond_albedo: bond_alb, geometric_albedo: geo_alb, mass: mass, radius: radius,
-            min_temp: min_temp, max_temp: max_temp, avg_temp: avg_temp}
+            eff_temp: eff_temp, min_temp: min_temp, max_temp: max_temp, avg_temp: avg_temp}
     }
 
     /// Get `Orbit`
@@ -197,11 +211,11 @@ impl<'p>  Planet<'p> {
         self.atmosphere.as_ref()
     }
 
-    /// Get `Ground`
+    /// Get `Surface`
     ///
-    /// Gets the ground information of the planet.
-    pub fn get_ground(&self) -> Option<&Ground> {
-        self.ground.as_ref()
+    /// Gets the surface information of the planet.
+    pub fn get_surface(&self) -> Option<&Surface> {
+        self.surface.as_ref()
     }
 
     /// Get planet type
@@ -257,11 +271,32 @@ impl<'p>  Planet<'p> {
         4_f64/3_f64*PI*self.radius.powi(3)
     }
 
+    /// Get greenhouse effect
+    ///
+    /// Gets the greenhouse effect of the planet, as a multiplier.
+    pub fn get_greenhouse(&self) -> f64 {
+        self.avg_temp/self.eff_temp
+    }
+
+    /// Get effective temperature
+    ///
+    /// Gets the effective temperature of the planet, in Kelvin (*K*).
+    pub fn get_eff_temp(&self) -> f64 {
+        self.eff_temp
+    }
+
     /// Get minimum temperature
     ///
     /// Gets the minimum temperature of the planet, in Kelvin (*K*).
     pub fn get_min_temp(&self) -> f64 {
         self.min_temp
+    }
+
+    /// Get average temperature
+    ///
+    /// Gets the average temperature of the planet, in Kelvin (*K*).
+    pub fn get_avg_temp(&self) -> f64 {
+        self.avg_temp
     }
 
     /// Get maximum temperature
@@ -271,11 +306,29 @@ impl<'p>  Planet<'p> {
         self.max_temp
     }
 
-    /// Get average temperature
+    /// Check if is earth twin
     ///
-    /// Gets the average temperature of the planet, in Kelvin (*K*).
-    pub fn get_avg_temp(&self) -> f64 {
-        self.avg_temp
+    /// Checks if the properties of the planet are similar to the ones in Earth
+    pub fn is_earth_twin(&self) -> bool {
+        self.planet_type == PlanetType::Rocky &&
+
+        self.mass < 1.75_f64*EARTH_MASS &&
+        self.mass > 0.6_f64*EARTH_MASS &&
+
+        self.min_temp > 223.15_f64 &&
+        self.min_temp < 263.15_f64 &&
+        self.avg_temp > 278.15_f64 &&
+        self.avg_temp < 293.15_f64 &&
+        self.max_temp > 293.15_f64 &&
+        self.max_temp < 323.15_f64 &&
+
+        self.get_atmosphere().unwrap().get_pressure() > 101325_f64*0.6_f64 &&
+        self.get_atmosphere().unwrap().get_pressure() < 101325_f64*1.5_f64 &&
+
+        self.get_atmosphere().unwrap().get_o2() < 0.3_f64 &&
+        self.get_atmosphere().unwrap().get_o2() > 0.15_f64 &&
+        self.get_atmosphere().unwrap().get_co2() < 0.05_f64 &&
+        self.get_atmosphere().unwrap().get_co() < 0.005_f64
     }
 
     /// Check Roche limit
@@ -443,8 +496,6 @@ impl<'p>  Planet<'p> {
         let h2o = left;
 
         Atmosphere::new(pressure, h2o, co2, co, n2, o2, ar, so2, ne, ch4, he)
-
-        // TODO: greenhouse effect
     }
 
     /// Generate properties
@@ -483,12 +534,19 @@ impl<'p>  Planet<'p> {
         }
     }
 
-    fn generate_ground(base: Option<(f64, f64, &Atmosphere)>) -> Ground {
+    /// Generate surface
+    ///
+    /// This function generates properties of the surface of the planet. The first time will be
+    /// random, while the next ones will receive the minimum temperature, the average temperature
+    /// and the maximum temperature, along with the atmosphere, to check the pressure in the water
+    /// phase diagram.
+    fn generate_surface(base: Option<(f64, f64, f64, &Atmosphere)>) -> Surface {
         if base.is_some() {
+            let (min_temp, avg_temp, max_temp, atm) = base.unwrap();
             // TODO: Check water state
-            Ground::new(0.0177, 0.6903, 0.0584, 0.2336)
+            Surface::new(0.0177, 0.6903, 0.0584, 0.2336)
         } else {
-            Ground::new(0.0177, 0.6903, 0.0584, 0.2336)
+            Surface::new(0.0177, 0.6903, 0.0584, 0.2336)
         }
     }
 
@@ -497,7 +555,7 @@ impl<'p>  Planet<'p> {
     /// Calculate atmosphere albedo
     ///
     /// This function calculates the albedo produced by the atmosphere. It will not be the final
-    /// albedo, since it needs the ground albedo to do the final calculation depending on the
+    /// albedo, since it needs the surface albedo to do the final calculation depending on the
     /// atmospheric pressure.
     fn calculate_atmosphere_albedo(atm: &Atmosphere) -> (f64, f64) {
             // TODO
@@ -507,12 +565,12 @@ impl<'p>  Planet<'p> {
             (bond, geometric)
     }
 
-    /// Calculate ground albedo
+    /// Calculate surface albedo
     ///
-    /// This function calculates the albedo produced by the ground. It will not be the final albedo
+    /// This function calculates the albedo produced by the surface. It will not be the final albedo
     /// since it needs the atmospheric albedo and the atmospheric pressure to be able to calculate
     /// the final one.
-    fn calculate_ground_albedo(ground: &Ground) -> (f64, f64) {
+    fn calculate_surface_albedo(surface: &Surface) -> (f64, f64) {
         // TODO
         (0.3, 0.36)
     }
@@ -521,17 +579,18 @@ impl<'p>  Planet<'p> {
     ///
     /// This function calculates the final albedo for the body. This albedo will be calculated
     /// depending on the contribution of the atmosphere to the final albedo.
-    fn calculate_albedo(planet_type: &PlanetType, atm: Option<&Atmosphere>, ground: Option<&Ground>) -> (f64, f64) {
+    fn calculate_albedo(planet_type: &PlanetType, atm: Option<&Atmosphere>,
+        surface: Option<&Surface>) -> (f64, f64) {
         match *planet_type {
             PlanetType::Rocky => {
-                let (ground_bond, ground_geom) = Planet::calculate_ground_albedo(ground.unwrap());
+                let (surface_bond, surface_geom) = Planet::calculate_surface_albedo(surface.unwrap());
                 let (atm_bond, atm_geom) = Planet::calculate_atmosphere_albedo(atm.unwrap());
 
                 match atm.unwrap().get_pressure() {
-                    0_f64...250_f64 => {(ground_bond, ground_geom)},
-                    250_f64...750_f64 => {(ground_bond*0.75+atm_bond*0.25, ground_geom*0.75+atm_geom*0.25)},
-                    750_f64...1_250_f64 => {(ground_bond*0.50+atm_bond*0.50, ground_geom*0.50+atm_geom*0.50)},
-                    1_250_f64...2_000_f64 => {(ground_bond*0.25+atm_bond*0.75, ground_geom*0.25+atm_geom*0.75)},
+                    0_f64...250_f64 => {(surface_bond, surface_geom)},
+                    250_f64...750_f64 => {(surface_bond*0.75+atm_bond*0.25, surface_geom*0.75+atm_geom*0.25)},
+                    750_f64...1_250_f64 => {(surface_bond*0.50+atm_bond*0.50, surface_geom*0.50+atm_geom*0.50)},
+                    1_250_f64...2_000_f64 => {(surface_bond*0.25+atm_bond*0.75, surface_geom*0.25+atm_geom*0.75)},
                     _ => {(atm_bond, atm_geom)}
                 }
             },
@@ -544,12 +603,20 @@ impl<'p>  Planet<'p> {
         }
     }
 
+    /// Calculate effective temperature
+    ///
+    /// This function calculates the effective temperature of the planet using real calculations
+    /// given the star, the semimajor axis of the orbit and the albedo of the planet.
     fn calculate_t_eff(st: &Star, sma: f64, albedo: f64) -> f64 {
         let solar_constant = st.get_luminosity()/(4_f64*PI*sma.powi(2)); // W/m²
 
         (solar_constant*(1_f64-albedo)/(4_f64*BOLTZ)).powf(1_f64/4_f64)
     }
 
+    /// Calculate greenhouse effect
+    ///
+    /// This function calculates the greenhouse effect of the planet. It uses an approximation
+    /// taking into account the atmosphere composition and pressure.
     fn calculate_greenhouse(atm: Option<&Atmosphere>) -> f64 {
         let atmosphere = atm.unwrap();
 
@@ -558,8 +625,13 @@ impl<'p>  Planet<'p> {
             atmosphere.get_ch4().powf(0.25_f64)/1_000_f64) * atmosphere.get_pressure().sqrt()
     }
 
+    /// Calculate surface temperature
+    ///
+    /// This function calculates the maximum and minimum surface temperatures of the planet. It uses
+    /// an approximation taking into account the orbit and the atmospheric pressure.
     fn calculate_surface_temp(avg_temp: f64, atm_pressure: f64, orbit: &Orbit) -> (f64, f64) {
-        let min_temp = avg_temp*(1_f64-orbit.get_day().powf(1_f64/8_f64)/8.25_f64*
+        let f1 = orbit.get_day().powf(1_f64/8_f64)/8.25_f64;
+        let min_temp = avg_temp*(1_f64-(if f1 > 1_f64 {0.99999_f64} else {f1})*
                         (1_f64-atm_pressure.powf(1_f64/3_f64)/300_f64)*
                         (1_f64-orbit.get_ecc())*
                         ((orbit.get_ax_tilt()-PI)/PI).abs());
@@ -785,13 +857,13 @@ impl Atmosphere {
     }
 }
 
-impl Ground {
-    /// Constructs a new `Ground` structure.
+impl Surface {
+    /// Constructs a new `Surface` structure.
     ///
-    /// It creates a new ground structure with the needed information for representing the ground
+    /// It creates a new surface structure with the needed information for representing the surface
     /// of the planet.
-    fn new(fresh_water: f64, ocean_water: f64, snow: f64, land: f64) -> Ground {
-        Ground {fresh_water: fresh_water, ocean_water: ocean_water, snow: snow, land: land}
+    fn new(fresh_water: f64, ocean_water: f64, snow: f64, land: f64) -> Surface {
+        Surface {fresh_water: fresh_water, ocean_water: ocean_water, snow: snow, land: land}
     }
 
     /// Get fresh water
@@ -867,13 +939,13 @@ mod tests {
     }
 
     #[test]
-    fn it_ground_getters() {
-        let ground = super::Ground::new(0.0177, 0.6903, 0.0584, 0.2336);
+    fn it_surface_getters() {
+        let surface = super::Surface::new(0.0177, 0.6903, 0.0584, 0.2336);
 
-        assert_eq!(0.0177_f64, ground.get_fresh_water());
-        assert_eq!(0.6903_f64, ground.get_ocean_water());
-        assert_eq!(0.0584_f64, ground.get_snow());
-        assert_eq!(0.2336_f64, ground.get_land());
+        assert_eq!(0.0177_f64, surface.get_fresh_water());
+        assert_eq!(0.6903_f64, surface.get_ocean_water());
+        assert_eq!(0.0584_f64, surface.get_snow());
+        assert_eq!(0.2336_f64, surface.get_land());
     }
 
     #[test]
@@ -891,16 +963,16 @@ mod tests {
             31_558_118.4_f64, 1.1_f64, 80_600_f64);
         let atm = super::Atmosphere::new(101325_f64, 0.01_f64, 0.0397_f64, 0_f64, 78.084_f64,
             20.946_f64, 0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
-        let ground = super::Ground::new(0.0177, 0.6903, 0.0584, 0.2336);
+        let surface = super::Surface::new(0.0177, 0.6903, 0.0584, 0.2336);
 
-        let planet = Planet {orbit: orb, atmosphere: Some(atm), ground: Some(ground),
+        let planet = Planet {orbit: orb, atmosphere: Some(atm), surface: Some(surface),
             planet_type: PlanetType::Rocky, bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64,
             mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64,
             avg_temp: 289.15_f64};
 
         assert_eq!(5, planet.get_orbit().get_star().get_id());
         assert_eq!(101325_f64, planet.get_atmosphere().unwrap().get_pressure());
-        assert_eq!(0.6903, planet.get_ground().unwrap().get_ocean_water());
+        assert_eq!(0.6903, planet.get_surface().unwrap().get_ocean_water());
         assert_eq!(&PlanetType::Rocky, planet.get_type());
         assert_eq!(0.306_f64, planet.get_bond_albedo());
         assert_eq!(0.367_f64, planet.get_geometric_albedo());
@@ -919,9 +991,9 @@ mod tests {
             31_558_118.4_f64, 1.1_f64, 80_600_f64);
         let atm = super::Atmosphere::new(101325_f64, 0.01_f64, 0.0397_f64, 0_f64, 78.084_f64,
             20.946_f64, 0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
-        let ground = super::Ground::new(0.0177, 0.6903, 0.0584, 0.2336);
+        let surface = super::Surface::new(0.0177, 0.6903, 0.0584, 0.2336);
 
-        let planet = Planet {orbit: orb, atmosphere: Some(atm), ground: Some(ground),
+        let planet = Planet {orbit: orb, atmosphere: Some(atm), surface: Some(surface),
             planet_type: PlanetType::Rocky, bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64,
             mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64,
             avg_temp: 289.15_f64};
@@ -936,9 +1008,9 @@ mod tests {
             31_558_118.4_f64, 1.1_f64, 80_600_f64);
         let atm = super::Atmosphere::new(101325_f64, 0.01_f64, 0.0397_f64, 0_f64, 78.084_f64,
             20.946_f64, 0.9340_f64, 0.1_f64, 0.00181_f64, 0.00017_f64, 0.00052_f64);
-        let ground = super::Ground::new(0.0177, 0.6903, 0.0584, 0.2336);
+        let surface = super::Surface::new(0.0177, 0.6903, 0.0584, 0.2336);
 
-        let planet = Planet {orbit: orb, atmosphere: Some(atm), ground: Some(ground),
+        let planet = Planet {orbit: orb, atmosphere: Some(atm), surface: Some(surface),
             planet_type: PlanetType::Rocky, bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64,
             mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64,
             avg_temp: 289.15_f64};
