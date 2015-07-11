@@ -390,14 +390,14 @@ impl<'p>  Planet<'p> {
     /// Generates a random atmosphere that can be mostly nitrogen, CO₂ or oxygen.
     fn generate_atmosphere(mass: f64) -> Atmosphere {
         let pressure = if rand::thread_rng().gen_range(0, 5) == 0 {
-                rand::thread_rng().gen_range(0_f64, 0.01_f64)
+                rand::thread_rng().gen_range(0_f64, 0.01_f64)*mass/EARTH_MASS
             } else if rand::thread_rng().gen_range(0, 2) == 0 {
-                rand::thread_rng().gen_range(0_f64, 150_000_f64)
+                rand::thread_rng().gen_range(0_f64, 200_000_f64)*mass/EARTH_MASS
             } else if rand::thread_rng().gen_range(0, 5) != 0 {
                 rand::thread_rng().gen_range(0_f64, 3_000_000_f64)
             } else {
-                rand::thread_rng().gen_range(0_f64, 200_000_000_f64)
-            } * mass/EARTH_MASS;
+                rand::thread_rng().gen_range(0_f64, 15_000_000_f64)
+            };
 
         let mut left = 1_f64;
         let mut co2 = 0_f64;
@@ -565,7 +565,7 @@ impl<'p>  Planet<'p> {
                         ((orbit.get_ax_tilt()-PI)/PI).abs());
 
         let max_temp = avg_temp*(1_f64+orbit.get_day().powf(1_f64/2.1_f64)*
-                        (1_f64-(atm_pressure*1000_f64).powf(1_f64/2.3_f64)/22_000_f64)*
+                        (1_f64-(atm_pressure*1000_f64).powf(1_f64/2.3_f64)/28_000_f64)*
                         (1_f64-orbit.get_ecc().powi(4))*
                         ((orbit.get_ax_tilt()-PI)/PI).abs()/1_150_f64);
 
