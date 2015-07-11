@@ -967,8 +967,8 @@ mod tests {
 
         let planet = Planet {orbit: orb, atmosphere: Some(atm), surface: Some(surface),
             planet_type: PlanetType::Rocky, bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64,
-            mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64,
-            avg_temp: 289.15_f64};
+            mass: 5.9726e+24_f64, radius: 6.371e+6_f64, eff_temp: 254.3367460856_f64,
+            min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
 
         assert_eq!(5, planet.get_orbit().get_star().get_id());
         assert_eq!(101325_f64, planet.get_atmosphere().unwrap().get_pressure());
@@ -995,8 +995,8 @@ mod tests {
 
         let planet = Planet {orbit: orb, atmosphere: Some(atm), surface: Some(surface),
             planet_type: PlanetType::Rocky, bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64,
-            mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64,
-            avg_temp: 289.15_f64};
+            mass: 5.9726e+24_f64, radius: 6.371e+6_f64, eff_temp: 254.3367460856_f64,
+            min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
 
         assert!(10.8321e+20_f64*0.999 < planet.get_volume() && 10.8321e+20_f64*1.001 > planet.get_volume());
     }
@@ -1012,8 +1012,8 @@ mod tests {
 
         let planet = Planet {orbit: orb, atmosphere: Some(atm), surface: Some(surface),
             planet_type: PlanetType::Rocky, bond_albedo: 0.306_f64, geometric_albedo: 0.367_f64,
-            mass: 5.9726e+24_f64, radius: 6.371e+6_f64, min_temp: 183.95_f64, max_temp: 329.85_f64,
-            avg_temp: 289.15_f64};
+            mass: 5.9726e+24_f64, radius: 6.371e+6_f64, eff_temp: 254.3367460856_f64,
+            min_temp: 183.95_f64, max_temp: 329.85_f64, avg_temp: 289.15_f64};
 
         assert!(5_514_f64*0.999 < planet.get_density() && 5_514_f64*1.001 > planet.get_density());
     }
