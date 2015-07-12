@@ -366,16 +366,16 @@ impl Star {
             },
             StarClass::K => {
                 if rand::thread_rng().gen_range(0, 16) != 0 {
-                    rand::thread_rng().gen_range(4, 11)
+                    rand::thread_rng().gen_range(5, 13)
                 } else {
-                    rand::thread_rng().gen_range(0, 4)
+                    rand::thread_rng().gen_range(0, 5)
                 }
             },
             StarClass::M => {
                 if rand::thread_rng().gen_range(0, 21) != 0 {
-                    rand::thread_rng().gen_range(3, 10)
+                    rand::thread_rng().gen_range(7, 16)
                 } else {
-                    rand::thread_rng().gen_range(0, 5)
+                    rand::thread_rng().gen_range(0, 7)
                 }
             }
         }

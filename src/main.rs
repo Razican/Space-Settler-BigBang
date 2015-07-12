@@ -55,7 +55,7 @@ fn main() {
                     } else {
                         let mut stats = Stats::new();
                         let galaxy_id = galaxy_id_parsed.unwrap();
-                        let star_count = rand::thread_rng().gen_range(950_000, 1_005_000);
+                        let star_count = rand::thread_rng().gen_range(950_000, 1_050_000);
                         println!("Creating a galaxy of {} stars...", star_count);
                         println!("");
 
@@ -72,9 +72,17 @@ fn main() {
 
                                 for g in 1..num_bodies {
                                     let planet = Planet::new(&star, tb_m, tb_n, g, last_distance);
-                                    stats.add_planet(&planet);
+                                    if planet.is_roche_ok() {
+                                        stats.add_planet(&planet);
+                                        // TODO: create satellites
+                                        // TODO: create rings
+                                    }
                                     last_distance = planet.get_orbit().get_sma();
                                 }
+
+                                // TODO: create Kuiper belt
+                                // TODO: create Oort cloud
+                                // TODO: create comets
                             }
                         }
 
@@ -178,14 +186,19 @@ fn print_stats(st: &Stats) {
     println!("\tRocky planets: {} ({:.2}%)", st.get_rocky_planets(), st.get_rocky_planet_percent()*100_f64);
     println!("\t\tSuper earths: {}", st.get_super_earths());
     println!("\t\tSmall planets: {}", st.get_small_planets());
-    println!("\t\tEarth twins (not necessarily the only habitable ones): {}", st.get_earth_twins());
+    println!("\t\tHabitable planets: {}", st.get_habitable_planets());
+    println!("\t\tEarth twins: {}", st.get_earth_twins());
+    println!("\t\tOcean planets: {}", st.get_ocean_planets());
     println!("\tGaseous planets: {} ({:.2}%)", st.get_gaseous_planets(), st.get_gaseous_planet_percent()*100_f64);
     println!("\t\tHot jupiters: {}", st.get_hot_jupiters());
     println!("\tMini-neptunes (some gaseous, some rocky, some in between): {}", st.get_mini_neptunes());
 
     println!("Records:");
+    println!("\tMinimum surface gravity: {:.3} m/s²", st.get_min_gravity());
+    println!("\tMaximum surface gravity: {:.3} m/s²", st.get_max_gravity());
     println!("\tMinimum temperature: {:.2}K ({:.2}°C)", st.get_min_temp(), kelvin_to_celsius(st.get_min_temp()));
     println!("\tMaximum temperature: {:.2}K ({:.2}°C)", st.get_max_temp(), kelvin_to_celsius(st.get_max_temp()));
+    println!("\tMaximum surface atmospheric pressure: {:.2} Pa ({:.2} Atm)", st.get_max_pressure(), st.get_max_pressure()/EARTH_ATM_PRESSURE);
     println!("");
 
     println!("\tMinimum sMa: {:.4} AU", st.get_min_sma()/AU);
@@ -219,9 +232,13 @@ struct Stats {
     small_planets: u32,
     super_earths: u32,
     earth_twins: u32,
+    ocean_planets: u32,
+    habitable: u32,
     hot_jupiters: u32,
     mini_neptunes: u32,
     //Records
+    min_gravity: f64,
+    max_gravity: f64,
     min_temp: f64,
     max_temp: f64,
     min_sma: f64,
@@ -230,15 +247,17 @@ struct Stats {
     max_orb_period: f64,
     min_day: f64,
     max_day: f64,
+    max_pressure: f64,
 }
 
 impl Stats {
     pub fn new() -> Stats {
         Stats {black_holes: 0, neutron_stars: 0, quark_stars: 0, white_dwarfs: 0, o_stars: 0,
             b_stars: 0, a_stars: 0, f_stars: 0, g_stars: 0, k_stars: 0, m_stars: 0, gaseous: 0,
-            rocky: 0, small_planets: 0, super_earths: 0, earth_twins: 0, hot_jupiters: 0,
-            mini_neptunes: 0, min_temp: 0_f64, max_temp: 0_f64, min_sma: 0_f64, max_sma: 0_f64,
-            min_orb_period: 0_f64, max_orb_period: 0_f64, min_day: 0_f64, max_day: 0_f64}
+            rocky: 0, small_planets: 0, super_earths: 0, earth_twins: 0, ocean_planets: 0,
+            habitable: 0, hot_jupiters: 0, mini_neptunes: 0, min_gravity: 0_f64, max_gravity: 0_f64,
+            min_temp: 0_f64, max_temp: 0_f64, min_sma: 0_f64, max_sma: 0_f64, min_orb_period: 0_f64,
+            max_orb_period: 0_f64, min_day: 0_f64, max_day: 0_f64, max_pressure: 0_f64}
     }
 
     pub fn add_star(&mut self, st: &Star) {
@@ -279,9 +298,6 @@ impl Stats {
         if planet.get_radius() > 2_f64*EARTH_RADIUS && planet.get_radius() < 4_f64*EARTH_RADIUS {
             self.mini_neptunes += 1;
         }
-        if planet.is_earth_twin() {
-            self.earth_twins +=1;
-        }
         match *planet.get_type() {
             PlanetType::Rocky => {
                 self.rocky += 1;
@@ -291,8 +307,11 @@ impl Stats {
                     self.small_planets += 1;
                 }
 
-                if planet.get_min_temp() < 0_f64 {
-                    print_planet(planet);
+                if self.min_gravity > planet.get_surface_gravity() || self.min_gravity == 0_f64 {
+                    self.min_gravity = planet.get_surface_gravity();
+                }
+                if self.max_gravity < planet.get_surface_gravity() {
+                    self.max_gravity = planet.get_surface_gravity();
                 }
 
                 if self.min_temp > planet.get_min_temp() || self.min_temp == 0_f64 {
@@ -300,6 +319,22 @@ impl Stats {
                 }
                 if self.max_temp < planet.get_max_temp() {
                     self.max_temp = planet.get_max_temp();
+                }
+
+                if self.max_pressure < planet.get_atmosphere().unwrap().get_pressure() {
+                    self.max_pressure = planet.get_atmosphere().unwrap().get_pressure();
+                }
+
+                if planet.is_habitable() {
+                    self.habitable +=1;
+                }
+
+                if planet.is_earth_twin() {
+                    self.earth_twins +=1;
+                }
+
+                if planet.get_surface().unwrap().get_ocean_water() == 1_f64 {
+                    self.ocean_planets +=1;
                 }
             },
             PlanetType::Gaseous => {
@@ -440,8 +475,16 @@ impl Stats {
         self.super_earths
     }
 
+    pub fn get_ocean_planets(&self) -> u32 {
+        self.ocean_planets
+    }
+
     pub fn get_earth_twins(&self) -> u32 {
         self.earth_twins
+    }
+
+    pub fn get_habitable_planets(&self) -> u32 {
+        self.habitable
     }
 
     pub fn get_small_planets(&self) -> u32 {
@@ -449,6 +492,14 @@ impl Stats {
     }
 
     // Record getters
+
+    pub fn get_min_gravity(&self) -> f64 {
+        self.min_gravity
+    }
+
+    pub fn get_max_gravity(&self) -> f64 {
+        self.max_gravity
+    }
 
     pub fn get_min_temp(&self) -> f64 {
         self.min_temp
@@ -480,5 +531,9 @@ impl Stats {
 
     pub fn get_max_day(&self) -> f64 {
         self.max_day
+    }
+
+    pub fn get_max_pressure(&self) -> f64 {
+        self.max_pressure
     }
 }

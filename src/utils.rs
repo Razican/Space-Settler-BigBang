@@ -67,6 +67,62 @@ pub fn kelvin_to_celsius(kelvin: f64) -> f64 {
     kelvin-273.15_f64
 }
 
+/// Checks if water can be liquid
+///
+/// # Examples
+///
+/// ```
+/// let min_temp = 260_f64;
+/// let max_temp = 290_f64;
+/// let pressure = 101_325_f64;
+///
+/// let can_be_liquid = can_water_be_liquid(min_temp, max_temp, pressure);
+///
+/// // Now can_be_liquid should be true
+/// # assert_eq!(true, can_be_liquid);
+/// ```
+pub fn can_water_be_liquid(min_temp: f64, max_temp: f64, pressure: f64) -> bool {
+    pressure > 611.657  &&
+    pressure > get_water_vaporize_pressure(min_temp) && // not to vaporize in low temperatures
+    pressure < get_water_melt_pressure(max_temp) // Not to ice in high temperatures
+}
+
+/// Checks if water can be ice
+///
+/// # Examples
+///
+/// ```
+/// let min_temp = 260_f64;
+/// let max_temp = 290_f64;
+/// let pressure = 101_325_f64;
+///
+/// let can_be_ice = can_water_be_ice(min_temp, pressure);
+///
+/// // Now can_be_ice should be true
+/// # assert_eq!(true, can_be_ice);
+/// ```
+pub fn can_water_be_ice(min_temp: f64, pressure: f64) -> bool {
+    if pressure < 611.657 {
+        pressure > get_water_sublimation_pressure(min_temp)
+    } else {
+        min_temp < get_water_melt_pressure(min_temp)
+    }
+}
+
+fn get_water_vaporize_pressure(temp: f64) -> f64 {
+    -2836.5744*temp.powi(-2) -6028.076559/temp +19.54263612 -0.02737830188*temp
+    +1.6261698e-5*temp.powi(2)+7.022905e-10*temp.powi(3)
+    -1.8680009e-13*temp.powi(4)+2.7150305*temp.ln()
+}
+
+fn get_water_sublimation_pressure(temp: f64) -> f64 {
+    (-5723.265/temp+9.550426-0.00728332*temp+3.53068*temp.ln()).exp()
+}
+
+fn get_water_melt_pressure(temp: f64) -> f64 {
+    -395.2*((temp/273.16).powi(9)-1_f64)*1e+6
+}
+
 #[cfg(test)]
 mod tests {
 	use std::f64::consts::PI;

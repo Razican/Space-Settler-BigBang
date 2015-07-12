@@ -35,5 +35,8 @@ The documentation of this project is available in [GitHub pages](http://razican.
 **Roche limit calculation**:
  - https://en.wikipedia.org/wiki/Roche_limit#Determining_the_Roche_limit
 
-**Water/land/snow statistics in earth***:
+**Water/land/snow statistics in earth**:
  - http://chartsbin.com/view/wwu
+
+**Water phase diagram**:
+ - http://www1.lsbu.ac.uk/water/water_phase_diagram.html

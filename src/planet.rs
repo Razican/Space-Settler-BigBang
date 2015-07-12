@@ -12,6 +12,7 @@ use self::rand::Rng;
 
 use consts::*;
 use star::Star;
+use utils::*;
 
 /// Planet structure
 ///
@@ -155,7 +156,7 @@ impl<'p>  Planet<'p> {
         let (mass, radius) = Planet::generate_properties(&planet_type);
 
         let atm = if planet_type == PlanetType::Rocky {
-            Some(Planet::generate_atmosphere(mass))
+            Some(Planet::generate_atmosphere(Planet::calculate_surface_gravity(mass, radius)))
         } else {None};
         let (mut bond_alb, mut geo_alb) = Planet::calculate_albedo(&planet_type, atm.as_ref(),
             surface.as_ref());
@@ -174,7 +175,7 @@ impl<'p>  Planet<'p> {
                 let before_temp = eff_temp;
 
                 surface = Some(Planet::generate_surface(
-                    Some((min_temp, avg_temp, max_temp, atm.as_ref().unwrap()))));
+                    Some((min_temp, max_temp, atm.as_ref().unwrap()))));
                 let (new_bond_alb, new_geo_alb) = Planet::calculate_albedo(
                     &planet_type, atm.as_ref(), surface.as_ref());
 
@@ -306,29 +307,50 @@ impl<'p>  Planet<'p> {
         self.max_temp
     }
 
+    /// Get surface gravity
+    ///
+    /// Gets the surface gravity of the planet, in *m/s²*.
+    pub fn get_surface_gravity(&self) -> f64 {
+        Planet::calculate_surface_gravity(self.mass, self.radius)
+    }
+
     /// Check if is earth twin
     ///
     /// Checks if the properties of the planet are similar to the ones in Earth
     pub fn is_earth_twin(&self) -> bool {
         self.planet_type == PlanetType::Rocky &&
 
-        self.mass < 1.75_f64*EARTH_MASS &&
-        self.mass > 0.6_f64*EARTH_MASS &&
+        self.mass < 4_f64*EARTH_MASS &&
+        self.mass > 0.5_f64*EARTH_MASS &&
 
-        self.min_temp > 223.15_f64 &&
-        self.min_temp < 263.15_f64 &&
-        self.avg_temp > 278.15_f64 &&
-        self.avg_temp < 293.15_f64 &&
-        self.max_temp > 293.15_f64 &&
-        self.max_temp < 323.15_f64 &&
+        self.radius < 1.5_f64*EARTH_RADIUS &&
+        self.radius > 0.6_f64*EARTH_RADIUS &&
 
-        self.get_atmosphere().unwrap().get_pressure() > 101325_f64*0.6_f64 &&
-        self.get_atmosphere().unwrap().get_pressure() < 101325_f64*1.5_f64 &&
+        self.min_temp > 200_f64 &&
+        self.min_temp < 265_f64 &&
+        self.avg_temp > 278_f64 &&
+        self.avg_temp < 295_f64 &&
+        self.max_temp > 290_f64 &&
+        self.max_temp < 325_f64 &&
+
+        self.get_atmosphere().unwrap().get_pressure() > 60_000_f64 &&
+        self.get_atmosphere().unwrap().get_pressure() < 175_000_f64 &&
 
         self.get_atmosphere().unwrap().get_o2() < 0.3_f64 &&
         self.get_atmosphere().unwrap().get_o2() > 0.15_f64 &&
         self.get_atmosphere().unwrap().get_co2() < 0.05_f64 &&
         self.get_atmosphere().unwrap().get_co() < 0.005_f64
+    }
+
+    pub fn is_habitable(&self) -> bool {
+        self.planet_type == PlanetType::Rocky &&
+        self.get_surface().unwrap().get_ocean_water() > 0.1 &&
+        self.get_surface().unwrap().get_fresh_water() > 0.01 &&
+        self.get_surface().unwrap().get_snow() > 0.01 &&
+        self.get_surface().unwrap().get_land() > 0.1 &&
+        self.get_atmosphere().unwrap().get_pressure() < 200_000_f64 &&
+        self.get_surface_gravity() > 3_f64 &&
+        self.get_surface_gravity() < 15_f64
     }
 
     /// Check Roche limit
@@ -358,7 +380,7 @@ impl<'p>  Planet<'p> {
     /// semimajor axis and the position in the system.
     fn generate_orbit(st: &Star, m: f64, n: f64, position: u8, last_sma: f64) -> Orbit {
         let mut sma = (m*(position as f64) - n).exp()*AU;
-        sma = rand::thread_rng().gen_range(sma*0.9, sma*1.1);
+        sma = rand::thread_rng().gen_range(sma*0.9, sma*1.15);
 
         if sma < last_sma*1.15 {
             sma = last_sma*rand::thread_rng().gen_range(1.15_f64, 1.25_f64);
@@ -366,6 +388,8 @@ impl<'p>  Planet<'p> {
 
         let ecc = if sma/AU < st.get_mass()/(SUN_MASS*2_f64) {
             rand::thread_rng().gen_range(0.05_f64, 0.25_f64)
+        } else if sma/AU < st.get_mass()/SUN_MASS*30_f64 {
+            rand::thread_rng().gen_range(0_f64, 0.45_f64)
         } else {
             rand::thread_rng().gen_range(0_f64, 0.1_f64)
         };
@@ -430,9 +454,9 @@ impl<'p>  Planet<'p> {
             if rand::thread_rng().gen_range(0, 2) == 0 {PlanetType::Gaseous} else {PlanetType::Rocky}
         } else if luminosity > 1.923e+27_f64 && // 5*SUN_LUMINOSITY
             sma/AU < (luminosity/SUN_LUMINOSITY).sqrt()*50_f64 {
-            if rand::thread_rng().gen_range(0, 4) == 0 {PlanetType::Rocky} else {PlanetType::Gaseous}
+            if rand::thread_rng().gen_range(0, 3) == 0 {PlanetType::Rocky} else {PlanetType::Gaseous}
         } else if sma/AU < luminosity/SUN_LUMINOSITY*200_f64 {
-            if rand::thread_rng().gen_range(0, 2) == 0 {PlanetType::Gaseous} else {PlanetType::Rocky}
+            if rand::thread_rng().gen_range(0, 5) == 0 {PlanetType::Gaseous} else {PlanetType::Rocky}
         } else {
             PlanetType::Rocky
         }
@@ -441,11 +465,13 @@ impl<'p>  Planet<'p> {
     /// Generate atmosphere
     ///
     /// Generates a random atmosphere that can be mostly nitrogen, CO₂ or oxygen.
-    fn generate_atmosphere(mass: f64) -> Atmosphere {
-        let pressure = if rand::thread_rng().gen_range(0, 5) == 0 {
-                rand::thread_rng().gen_range(0_f64, 0.01_f64)*mass/EARTH_MASS
-            } else if rand::thread_rng().gen_range(0, 2) == 0 {
-                rand::thread_rng().gen_range(0_f64, 200_000_f64)*mass/EARTH_MASS
+    fn generate_atmosphere(gravity: f64) -> Atmosphere {
+        let pressure = if gravity < 5_f64 && rand::thread_rng().gen_range(0, 5) == 0 {
+                rand::thread_rng().gen_range(0_f64, 0.01_f64)*gravity
+            } else if gravity < 5_f64  && rand::thread_rng().gen_range(0, 2) == 0 {
+                rand::thread_rng().gen_range(0_f64, 10_000_f64)*gravity/10_f64
+            } else if gravity < 15_f64 {
+                rand::thread_rng().gen_range(0_f64, 200_000_000_f64)*gravity/10_f64
             } else if rand::thread_rng().gen_range(0, 5) != 0 {
                 rand::thread_rng().gen_range(0_f64, 3_000_000_f64)
             } else {
@@ -507,14 +533,14 @@ impl<'p>  Planet<'p> {
                 let radius = rand::thread_rng().gen_range(2e+6_f64, 15e+6_f64); // m
 
                 let density = if radius < 75e+5_f64 {
-                    rand::thread_rng().gen_range(2_700_f64, 6_500_f64) // kg/m³
+                    rand::thread_rng().gen_range(1_500_f64, 6_000_f64) // kg/m³
                 } else {
-                    rand::thread_rng().gen_range(5_500_f64, 15_000_f64) // kg/m³
+                    rand::thread_rng().gen_range(5_000_f64, 13_000_f64) // kg/m³
                 };
 
                 let mut mass = 4_f64*PI*radius.powi(3)*density/3_f64; // kg
-                if mass > 9e+25_f64 {
-                    mass = rand::thread_rng().gen_range(5e+25_f64, 9e+25_f64) // kg
+                if mass > 2e+25_f64 {
+                    mass = rand::thread_rng().gen_range(9e+24_f64, 2e+25_f64) // kg
                 }
 
                 (mass, radius)
@@ -540,11 +566,43 @@ impl<'p>  Planet<'p> {
     /// random, while the next ones will receive the minimum temperature, the average temperature
     /// and the maximum temperature, along with the atmosphere, to check the pressure in the water
     /// phase diagram.
-    fn generate_surface(base: Option<(f64, f64, f64, &Atmosphere)>) -> Surface {
+    fn generate_surface(base: Option<(f64, f64, &Atmosphere)>) -> Surface {
         if base.is_some() {
-            let (min_temp, avg_temp, max_temp, atm) = base.unwrap();
-            // TODO: Check water state
-            Surface::new(0.0177, 0.6903, 0.0584, 0.2336)
+            let (min_temp, max_temp, atm) = base.unwrap();
+            let mut left = 1_f64;
+
+            let ocean = if can_water_be_liquid(min_temp, max_temp, atm.get_pressure()){
+                if rand::thread_rng().gen_range(0, 3) != 0 {0_f64}
+                else if rand::thread_rng().gen_range(0, 5) != 0 {
+                    rand::thread_rng().gen_range(0_f64, 1_f64)
+                } else {1_f64}
+            } else {0_f64};
+            left -= ocean;
+
+            let snow = if can_water_be_ice(min_temp, atm.get_pressure()) && left > 0_f64 {
+                if ocean > 0_f64 {
+                    rand::thread_rng().gen_range(0_f64, left)
+                } else if rand::thread_rng().gen_range(0, 2) != 0 {
+                    rand::thread_rng().gen_range(0.9_f64, 1_f64)
+                } else {
+                    rand::thread_rng().gen_range(0_f64, 1_f64)
+                }
+            } else {0_f64};
+            left -= snow;
+
+            let land = if left > 0_f64 {
+                if ocean > 0_f64 {
+                    rand::thread_rng().gen_range(left-0.05_f64, left)
+                } else {
+                    left
+                }
+            } else {0_f64};
+
+            let fresh_water = if ocean > 0_f64  && left > 0_f64 {
+                rand::thread_rng().gen_range(0_f64, if left > 0.1_f64 {0.1_f64} else {left})
+            } else {0_f64};
+
+            Surface::new(fresh_water, ocean, snow, land)
         } else {
             Surface::new(0.0177, 0.6903, 0.0584, 0.2336)
         }
@@ -552,17 +610,25 @@ impl<'p>  Planet<'p> {
 
     // ----------  calculators  ---------
 
+    fn calculate_surface_gravity(mass: f64, radius: f64) -> f64 {
+        G*mass/radius.powi(2)
+    }
+
     /// Calculate atmosphere albedo
     ///
     /// This function calculates the albedo produced by the atmosphere. It will not be the final
     /// albedo, since it needs the surface albedo to do the final calculation depending on the
     /// atmospheric pressure.
     fn calculate_atmosphere_albedo(atm: &Atmosphere) -> (f64, f64) {
-            // TODO
-            let bond = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
-            let geometric = rand::thread_rng().gen_range(0.4_f64, 0.6_f64);
+            let bond = (atm.get_co2()+atm.get_co())*rand::thread_rng().gen_range(0.5_f64, 0.7_f64) +
+            atm.get_n2()*rand::thread_rng().gen_range(0.2_f64, 0.3_f64) +
+            atm.get_ch4()*rand::thread_rng().gen_range(0.15_f64, 0.25_f64) +
+            atm.get_o2()*rand::thread_rng().gen_range(0.25_f64, 0.5_f64) +
+            atm.get_h2o()*rand::thread_rng().gen_range(0.2_f64, 0.5_f64) +
+            (atm.get_so2()+atm.get_ne()+atm.get_he()+atm.get_ar())*
+            rand::thread_rng().gen_range(0_f64, 0.9_f64);
 
-            (bond, geometric)
+            (bond, rand::thread_rng().gen_range(bond*0.85, bond*1.15))
     }
 
     /// Calculate surface albedo
@@ -571,8 +637,16 @@ impl<'p>  Planet<'p> {
     /// since it needs the atmospheric albedo and the atmospheric pressure to be able to calculate
     /// the final one.
     fn calculate_surface_albedo(surface: &Surface) -> (f64, f64) {
-        // TODO
-        (0.3, 0.36)
+        let geom = (surface.get_ocean_water()+surface.get_fresh_water())*
+                    (rand::thread_rng().gen_range(0.05_f64, 0.15_f64))*
+                    surface.get_snow()*(rand::thread_rng().gen_range(0.5_f64, 1.5_f64))*
+                    surface.get_land()*(rand::thread_rng().gen_range(0.1_f64, 0.6_f64));
+
+        let bond = (surface.get_ocean_water()+surface.get_fresh_water())*
+                    (rand::thread_rng().gen_range(0.1_f64, 0.2_f64))*
+                    surface.get_snow()*(rand::thread_rng().gen_range(0.6_f64, 0.999_f64))*
+                    surface.get_land()*(rand::thread_rng().gen_range(0.05_f64, 0.4_f64));
+        (bond, geom)
     }
 
     /// Calculate final albedo

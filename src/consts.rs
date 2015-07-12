@@ -13,6 +13,8 @@ pub const SUN_LUMINOSITY: f64 = 3.846e+26;
 pub const EARTH_MASS: f64 = 5.9726e+24;
 /// The radius of the Earth (R<sub>⊕</sub>), in meters (*m*).
 pub const EARTH_RADIUS: f64 = 6_371_000_f64;
+/// The atmospheric pressure at sea level in Earth, in pascals (*Pa*).
+pub const EARTH_ATM_PRESSURE: f64 = 101_325_f64;
 
 /// The mass of Jupiter (M<sub>j</sub>), in *kg*.
 pub const JUPITER_MASS: f64 = 1.898e+27;
