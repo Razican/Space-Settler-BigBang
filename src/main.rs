@@ -13,7 +13,11 @@ pub mod star;
 pub mod consts;
 pub mod utils;
 
-use std::env;
+use std::env::args;
+use std::process::exit;
+use std::thread;
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::{Ordering, ATOMIC_USIZE_INIT};
 
 use self::rand::Rng;
 
@@ -23,7 +27,7 @@ use consts::*;
 use utils::*;
 
 fn main() {
-    let mut args = env::args();
+    let mut args = args();
     let arg = args.nth(1);
 
     if arg.is_some() {
@@ -51,59 +55,187 @@ fn main() {
                 if galaxy_id_arg.is_some() {
                     let galaxy_id_parsed = galaxy_id_arg.unwrap().parse::<u32>();
                     if galaxy_id_parsed.is_err() {
-                        println!("Please, provide a valid galaxy ID.")
+                        println!("Please, provide a valid galaxy ID.");
+                        exit(1);
                     } else {
-                        let mut stats = Stats::new();
+                        let mut verbose = false;
+                        let mut threads = 1;
+                        let mut star_count = rand::thread_rng().gen_range(950_000, 1_050_000);
                         let galaxy_id = galaxy_id_parsed.unwrap();
-                        let star_count = rand::thread_rng().gen_range(950_000, 1_050_000);
-                        println!("Creating a galaxy of {} stars...", star_count);
-                        println!("");
 
-                        for i in 0..star_count {
-                            print!("Creating star {} and its planets...\r", i);
-
-                            let star = Star::new(i, galaxy_id);
-                            stats.add_star(&star);
-                            let num_bodies = star.generate_num_bodies();
-
-                            if num_bodies > 0 {
-                                let (tb_m, tb_n) = star.generate_titius_bode(num_bodies);
-                                let mut last_distance = 0_f64;
-
-                                for g in 1..num_bodies {
-                                    let planet = Planet::new(&star, tb_m, tb_n, g, last_distance);
-                                    if planet.is_roche_ok() {
-                                        stats.add_planet(&planet);
-                                        // TODO: create satellites
-                                        // TODO: create rings
-                                    }
-                                    last_distance = planet.get_orbit().get_sma();
+                        while let Some(argument) = args.next() {
+                            if argument.starts_with("-") {
+                                match argument.as_ref() {
+                                    "-t" | "--threads" => {
+                                        let threads_arg = args.next();
+                                        if threads_arg.is_some() {
+                                            let threads_arg_parsed = threads_arg.unwrap().parse::<u8>();
+                                            if threads_arg_parsed.is_err() {
+                                                println!("You must provide a correct number of threads.");
+                                                exit(1);
+                                            } else {
+                                                let input_threads = threads_arg_parsed.unwrap();
+                                                if input_threads > 0 {
+                                                    threads = input_threads;
+                                                } else {
+                                                    println!("You must use at least 1 thread.");
+                                                    exit(1);
+                                                }
+                                            }
+                                        } else {
+                                            println!("You must specify the number of threads.");
+                                            exit(1);
+                                        }
+                                    },
+                                    "-s" | "--stars" => {
+                                        let star_arg = args.next();
+                                        if star_arg.is_some() {
+                                            let star_arg_parsed = star_arg.unwrap().parse::<u64>();
+                                            if star_arg_parsed.is_err() {
+                                                println!("You must provide a correct number of stars.");
+                                                exit(1);
+                                            } else {
+                                                let input_stars = star_arg_parsed.unwrap();
+                                                if input_stars > 0 {
+                                                    star_count = input_stars;
+                                                } else {
+                                                    println!("You must create at least 1 star.");
+                                                    exit(1);
+                                                }
+                                            }
+                                        } else {
+                                            println!("You must specify the number of stars.");
+                                            exit(1);
+                                        }
+                                    },
+                                    "-v" | "--verbose" => {verbose = true},
+                                    "-h" | "--help" => show_creation_help(false),
+                                    _ => show_creation_help(true),
                                 }
-
-                                // TODO: create Kuiper belt
-                                // TODO: create Oort cloud
-                                // TODO: create comets
+                            } else {
+                                println!("Argument error.");
+                                exit(1);
                             }
                         }
 
-                        println!("Finished the creation of the galaxy.");
-                        print_stats(&stats);
+                        // Galaxy creation
+                        println!("Creating a galaxy of {} stars...", star_count);
+                        println!("");
+
+                        if verbose {
+                            println!("Threads: {}", threads);
+                            println!("Stars per thread: {}-{}", star_count/(threads as u64),
+                                star_count%(threads as u64)+star_count/(threads as u64));
+                            println!("");
+                        }
+
+                        let shared_stats = Arc::new(Mutex::new(Stats::new()));
+                        let created_stars = Arc::new(ATOMIC_USIZE_INIT);
+
+                        let mut handles: Vec<_> = (0..threads).map(|t| {
+                            if verbose {
+                                println!("Starting thread {}", t+1);
+                            }
+                            let created_stars_clone = created_stars.clone();
+                            let shared_stats_clone = shared_stats.clone();
+                            thread::spawn(move || {
+                                let thread_star_count = if t < threads - 1 {
+                                    star_count/(threads as u64)
+                                } else {
+                                    star_count%(threads as u64)+star_count/(threads as u64)
+                                };
+                                let mut stats = Stats::new();
+
+                                for i in 0..thread_star_count {
+                                    let star = Star::new(i, galaxy_id);
+                                    stats.add_star(&star);
+                                    if i % 5_000 == 0 {
+                                        created_stars_clone.fetch_add(10_000, Ordering::SeqCst);
+                                    }
+
+                                    let num_bodies = star.generate_num_bodies();
+
+                                    if num_bodies > 0 {
+                                        let (tb_m, tb_n) = star.generate_titius_bode(num_bodies);
+                                        let mut last_distance = 0_f64;
+
+                                        for g in 1..num_bodies {
+                                            let planet = Planet::new(&star, tb_m, tb_n, g, last_distance);
+                                            if planet.is_roche_ok() {
+                                                stats.add_planet(&planet);
+                                                // TODO: create satellites
+                                                // TODO: create rings
+                                            }
+                                            last_distance = planet.get_orbit().get_sma();
+                                        }
+
+                                        // TODO: create Kuiper belt
+                                        // TODO: create Oort cloud
+                                        // TODO: create comets
+                                    }
+                                }
+
+                                if verbose {
+                                    println!("Finished thread {}, adding stats...", t+1);
+                                }
+
+                                let mut total_shared_stats = shared_stats_clone.lock().unwrap();
+                                total_shared_stats.add_stats(&stats);
+
+                                if verbose {
+                                    println!("Stats for thread {} added.", t+1);
+                                }
+                            })
+                        }).collect();
+
+                        let created_stars_clone = created_stars.clone();
+                        handles.push(thread::spawn(move || {
+                            while created_stars_clone.load(Ordering::SeqCst) < (star_count as usize) {
+                                print!("Created {} stars and their planets.\r",
+                                    created_stars_clone.load(Ordering::SeqCst));
+                                thread::sleep_ms(50);
+                            }
+                            println!("It seems that all stars have been created. Finishing...");
+                        }));
+
+                        for thread in handles {
+                            thread.join().unwrap();
+                        }
+
+                        println!("Finished the creation of the galaxy with {} stars.", star_count);
+                        let final_shared_stats = shared_stats.lock().unwrap();
+                        print_stats(&final_shared_stats);
                     }
                 } else {
                     println!("You must provide the galaxy ID.");
+                    exit(1);
                 }
             },
-            _ => show_help()
+            "-h" | "--help" => show_help(false),
+            _ => show_help(true),
         }
     } else {
-        show_help();
+        show_help(true);
     }
 }
 
-fn show_help() {
+fn show_help(error: bool) {
+    println!("");
     println!("You must include the action you want. Currently you have these options:");
     println!("-e, --earth\t\tGenerates lots of random stars and planets until it finds an earth twin.");
     println!("-g, --create-galaxy\tGenerates a complete new galaxy and shows statistics (not yet functional).");
+    println!("");
+    if error {exit(1)} else {exit(0)}
+}
+
+fn show_creation_help(error: bool) {
+    println!("");
+    println!("You can specify the following parameters:");
+    println!("-t, --threads\tThe number of threads to use during the creation. By default, 1.");
+    println!("-s, --stars\tThe number of stars to create. By default, randomly between 950,000 and 1,050,000.");
+    println!("-v, --verbose\tVerbose output.");
+    println!("");
+    if error {exit(1)} else {exit(0)}
 }
 
 fn print_star(star: &Star) {
@@ -343,6 +475,65 @@ impl Stats {
                     self.hot_jupiters += 1;
                 }
             },
+        }
+    }
+
+    pub fn add_stats(&mut self, new_stats: &Stats) {
+        self.black_holes += new_stats.get_black_holes();
+        self.neutron_stars += new_stats.get_neutron_stars();
+        self.quark_stars += new_stats.get_quark_stars();
+        self.white_dwarfs += new_stats.get_white_dwarfs();
+
+        self.o_stars += new_stats.get_o_stars();
+        self.b_stars += new_stats.get_b_stars();
+        self.a_stars += new_stats.get_a_stars();
+        self.f_stars += new_stats.get_f_stars();
+        self.g_stars += new_stats.get_g_stars();
+        self.k_stars += new_stats.get_k_stars();
+        self.m_stars += new_stats.get_m_stars();
+
+        self.gaseous += new_stats.get_gaseous_planets();
+        self.rocky += new_stats.get_rocky_planets();
+        self.small_planets += new_stats.get_small_planets();
+        self.super_earths += new_stats.get_super_earths();
+        self.earth_twins += new_stats.get_earth_twins();
+        self.ocean_planets += new_stats.get_ocean_planets();
+        self.habitable += new_stats.get_habitable_planets();
+        self.hot_jupiters += new_stats.get_hot_jupiters();
+        self.mini_neptunes += new_stats.get_mini_neptunes();
+
+        if new_stats.get_min_gravity() < self.min_gravity || self.min_gravity == 0_f64 {
+            self.min_gravity = new_stats.get_min_gravity();
+        }
+        if new_stats.get_max_gravity() > self.max_gravity {
+            self.max_gravity = new_stats.get_max_gravity();
+        }
+        if new_stats.get_min_temp() < self.min_temp  || self.min_temp == 0_f64{
+            self.min_temp = new_stats.get_min_temp();
+        }
+        if new_stats.get_max_temp() > self.max_temp {
+            self.max_temp = new_stats.get_max_temp();
+        }
+        if new_stats.get_min_sma() < self.min_sma  || self.min_sma == 0_f64 {
+            self.min_sma = new_stats.get_min_sma();
+        }
+        if new_stats.get_max_sma() > self.max_sma {
+            self.max_sma = new_stats.get_max_sma();
+        }
+        if new_stats.get_min_orb_period() < self.min_orb_period  || self.min_orb_period == 0_f64 {
+            self.min_orb_period = new_stats.get_min_orb_period();
+        }
+        if new_stats.get_max_orb_period() > self.max_orb_period {
+            self.max_orb_period = new_stats.get_max_orb_period();
+        }
+        if new_stats.get_min_day() < self.min_day || self.min_day == 0_f64 {
+            self.min_day = new_stats.get_min_day();
+        }
+        if new_stats.get_max_day() > self.max_day {
+            self.max_day = new_stats.get_max_day();
+        }
+        if new_stats.get_max_pressure() > self.max_pressure {
+            self.max_pressure = new_stats.get_max_pressure();
         }
     }
 
