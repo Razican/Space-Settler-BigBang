@@ -345,7 +345,7 @@ fn print_stats(st: &Stats) {
     println!("");
 }
 
-struct Stats {
+pub struct Stats {
     // Stars
     black_holes: u32,
     neutron_stars: u32,
