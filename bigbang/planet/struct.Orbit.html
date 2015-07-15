@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Orbit` struct in crate `bigbang`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Orbit">
+
+    <title>bigbang::planet::Orbit - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'><a href='../index.html'>bigbang</a>::<wbr><a href='index.html'>planet</a></p><script>window.sidebarCurrent = {name: 'Orbit', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>bigbang</a>::<wbr><a href='index.html'>planet</a>::<wbr><a class='struct' href=''>Orbit</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-236' class='srclink' href='../../src/bigbang/planet.rs.html#68-80' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Orbit&lt;'o&gt; {
+    // some fields omitted
+}</pre><div class='docblock'><p>Orbit structure</p>
+
+<p>This structure contains all the needed information to define an orbit, and as an extra, it
+contains the axial tilt of the rotation of the body and the rotation period of the body. It also
+includes a reference to the star being orbited. It also contains the orbital period, even if it
+can be calculated with the rest of the parameters.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'o&gt; <a class='struct' href='../../bigbang/planet/struct.Orbit.html' title='bigbang::planet::Orbit'>Orbit</a>&lt;'o&gt;</code></h3><div class='impl-items'><h4 id='method.get_star' class='method'><code>fn <a href='#method.get_star' class='fnname'>get_star</a>(&amp;self) -&gt; &amp;<a class='struct' href='../../bigbang/star/struct.Star.html' title='bigbang::star::Star'>Star</a></code></h4>
+<div class='docblock'><p>Get <code>Star</code></p>
+
+<p>Gets the Star being orbited.</p>
+</div><h4 id='method.get_position' class='method'><code>fn <a href='#method.get_position' class='fnname'>get_position</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a></code></h4>
+<div class='docblock'><p>Get position</p>
+
+<p>Gets the position of the orbit in the solar system. For example, for Earth would be 3.</p>
+</div><h4 id='method.get_ecc' class='method'><code>fn <a href='#method.get_ecc' class='fnname'>get_ecc</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get eccentricity</p>
+
+<p>Gets the eccentricity of the orbit. Since all planets will be in closed orbits, the
+eccentricity will be between 0 and 1.</p>
+</div><h4 id='method.get_sma' class='method'><code>fn <a href='#method.get_sma' class='fnname'>get_sma</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get semimajor axis</p>
+
+<p>Gets the semimajor axis of the orbit, in meters (<em>m</em>).</p>
+</div><h4 id='method.get_incl' class='method'><code>fn <a href='#method.get_incl' class='fnname'>get_incl</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get inclination</p>
+
+<p>Gets the inclination of the orbit, in radians (<em>rad</em>).</p>
+</div><h4 id='method.get_lan' class='method'><code>fn <a href='#method.get_lan' class='fnname'>get_lan</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get longitude of ascending node</p>
+
+<p>Gets the longitude of the ascending node of the orbit, in radians (<em>rad</em>).</p>
+</div><h4 id='method.get_arg_p' class='method'><code>fn <a href='#method.get_arg_p' class='fnname'>get_arg_p</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get argument of periapsis</p>
+
+<p>Gets the argument of the periapsis of the orbit, in radians (<em>rad</em>).</p>
+</div><h4 id='method.get_anomaly' class='method'><code>fn <a href='#method.get_anomaly' class='fnname'>get_anomaly</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get mean anomaly</p>
+
+<p>Gets the mean anomaly of the orbit at the beginning of the universe, in radians (<em>rad</em>).</p>
+</div><h4 id='method.get_orb_period' class='method'><code>fn <a href='#method.get_orb_period' class='fnname'>get_orb_period</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get orbital period</p>
+
+<p>Gets the period of the orbit, in seconds (<em>s</em>).</p>
+</div><h4 id='method.get_apoapsis' class='method'><code>fn <a href='#method.get_apoapsis' class='fnname'>get_apoapsis</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get apoapsis</p>
+
+<p>Gets the apoapsis of the orbit, in meters (<em>m</em>).</p>
+</div><h4 id='method.get_periapsis' class='method'><code>fn <a href='#method.get_periapsis' class='fnname'>get_periapsis</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get periapsis</p>
+
+<p>Gets the periapsis of the orbit, in meters (<em>m</em>).</p>
+</div><h4 id='method.get_ax_tilt' class='method'><code>fn <a href='#method.get_ax_tilt' class='fnname'>get_ax_tilt</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get axial tilt</p>
+
+<p>Gets the axial tilt of the rotation of the body, in radians (<em>rad</em>).</p>
+</div><h4 id='method.get_rot_period' class='method'><code>fn <a href='#method.get_rot_period' class='fnname'>get_rot_period</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get rotation period</p>
+
+<p>Gets the sidereal rotation period of the body, in seconds (<em>s</em>).</p>
+</div><h4 id='method.get_day' class='method'><code>fn <a href='#method.get_day' class='fnname'>get_day</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get day</p>
+
+<p>Gets the day length of the body, in seconds (<em>s</em>).</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+            <p>
+                Search functions by type signature (e.g.
+                <code>vec -> usize</code>)
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "bigbang";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script async src="../../search-index.js"></script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Planet` struct in crate `bigbang`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Planet">
+
+    <title>bigbang::planet::Planet - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'><a href='../index.html'>bigbang</a>::<wbr><a href='index.html'>planet</a></p><script>window.sidebarCurrent = {name: 'Planet', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>bigbang</a>::<wbr><a href='index.html'>planet</a>::<wbr><a class='struct' href=''>Planet</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-14' class='srclink' href='../../src/bigbang/planet.rs.html#21-37' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Planet&lt;'p&gt; {
+    // some fields omitted
+}</pre><div class='docblock'><p>Planet structure</p>
+
+<p>This structure defines a planet and contains all the structures needed for a correct definition
+and representation of itself.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'p&gt; <a class='struct' href='../../bigbang/planet/struct.Planet.html' title='bigbang::planet::Planet'>Planet</a>&lt;'p&gt;</code></h3><div class='docblock'><p>Crust structure</p>
+
+<p>This structure represents the crust composition of the planet, time in kg per element. It will
+only contain the composition of the crust of the planet, that will allow for the players to dig
+and take resources.
+Life structure</p>
+
+<p>This structure represents the life in the planet.</p>
+</div><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(st: &amp;'p <a class='struct' href='../../bigbang/star/struct.Star.html' title='bigbang::star::Star'>Star</a>, m: <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a>, n: <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a>, position: <a href='http://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>, last_sm_a: <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a>) -&gt; <a class='struct' href='../../bigbang/planet/struct.Planet.html' title='bigbang::planet::Planet'>Planet</a></code></h4>
+<div class='docblock'><p>Constructs a new <code>Planet</code>.</p>
+
+<p>It creates a random planet taking into account real planet statistics. It requires the
+reference to parent star and the two values of the Titius–Bode law, along with the order
+of the planet in the solar system and the last body&#39;s semi-major axis in the solar system.</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>star</span>::<span class='ident'>Star</span>;
+<span class='kw'>use</span> <span class='ident'>planet</span>::<span class='ident'>Planet</span>;
+
+<span class='kw'>let</span> <span class='ident'>st</span> <span class='op'>=</span> <span class='ident'>Star</span>::<span class='ident'>new</span>(<span class='number'>0</span>, <span class='number'>1</span>);
+
+<span class='kw'>let</span> <span class='ident'>num_bodies</span> <span class='op'>=</span> <span class='ident'>star</span>.<span class='ident'>calculate_num_bodies</span>();
+<span class='kw'>let</span> (<span class='ident'>tb_m</span>, <span class='ident'>tb_n</span>) <span class='op'>=</span> <span class='ident'>star</span>.<span class='ident'>calculate_titius_bode</span>(<span class='ident'>num_bodies</span>);
+
+<span class='kw'>if</span> <span class='ident'>num_bodies</span> <span class='op'>&gt;</span> <span class='number'>0</span> {
+    <span class='kw'>let</span> <span class='ident'>planet</span> <span class='op'>=</span> <span class='ident'>Planet</span>::<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='ident'>star</span>, <span class='ident'>tb_m</span>, <span class='ident'>tb_n</span>, <span class='number'>1</span>);
+}
+</pre>
+</div><h4 id='method.get_orbit' class='method'><code>fn <a href='#method.get_orbit' class='fnname'>get_orbit</a>(&amp;self) -&gt; &amp;<a class='struct' href='../../bigbang/planet/struct.Orbit.html' title='bigbang::planet::Orbit'>Orbit</a></code></h4>
+<div class='docblock'><p>Get <code>Orbit</code></p>
+
+<p>Gets the orbit information of the planet.</p>
+</div><h4 id='method.get_atmosphere' class='method'><code>fn <a href='#method.get_atmosphere' class='fnname'>get_atmosphere</a>(&amp;self) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='struct' href='../../bigbang/planet/struct.Atmosphere.html' title='bigbang::planet::Atmosphere'>Atmosphere</a>&gt;</code></h4>
+<div class='docblock'><p>Get <code>Atmosphere</code></p>
+
+<p>Gets the atmosphere information of the planet.</p>
+</div><h4 id='method.get_surface' class='method'><code>fn <a href='#method.get_surface' class='fnname'>get_surface</a>(&amp;self) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='struct' href='../../bigbang/planet/struct.Surface.html' title='bigbang::planet::Surface'>Surface</a>&gt;</code></h4>
+<div class='docblock'><p>Get <code>Surface</code></p>
+
+<p>Gets the surface information of the planet.</p>
+</div><h4 id='method.get_type' class='method'><code>fn <a href='#method.get_type' class='fnname'>get_type</a>(&amp;self) -&gt; &amp;<a class='enum' href='../../bigbang/planet/enum.PlanetType.html' title='bigbang::planet::PlanetType'>PlanetType</a></code></h4>
+<div class='docblock'><p>Get planet type</p>
+
+<p>Gets the type of the planet.</p>
+</div><h4 id='method.get_bond_albedo' class='method'><code>fn <a href='#method.get_bond_albedo' class='fnname'>get_bond_albedo</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get Bond albedo</p>
+
+<p>Gets the Bond albedo of the planet. The Bond albedo is the reflectivity of the planet, or in
+other words, the percentage of light reflected by the planet, from 0 to 1.</p>
+</div><h4 id='method.get_geometric_albedo' class='method'><code>fn <a href='#method.get_geometric_albedo' class='fnname'>get_geometric_albedo</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get geometric albedo</p>
+
+<p>Gets the geometric albedo of the planet. The geometric albedo is the reflectivity of the
+planet, but only taking into account the light that reflects directly back to the emission,
+or in other words, how bright an observer would see the planet if looking at it directly
+from the light source, from 0 to 1.</p>
+</div><h4 id='method.get_mass' class='method'><code>fn <a href='#method.get_mass' class='fnname'>get_mass</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get mass</p>
+
+<p>Gets the mass of the planet in <em>kg</em>.</p>
+</div><h4 id='method.get_radius' class='method'><code>fn <a href='#method.get_radius' class='fnname'>get_radius</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get radius</p>
+
+<p>Gets the radius of the planet, in meters (<em>m</em>).</p>
+</div><h4 id='method.get_density' class='method'><code>fn <a href='#method.get_density' class='fnname'>get_density</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get density</p>
+
+<p>Gets the density of the planet, in <em>kg/m³</em>.</p>
+</div><h4 id='method.get_volume' class='method'><code>fn <a href='#method.get_volume' class='fnname'>get_volume</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get volume</p>
+
+<p>Gets the volume of the planet, in <em>m³</em>.</p>
+</div><h4 id='method.get_greenhouse' class='method'><code>fn <a href='#method.get_greenhouse' class='fnname'>get_greenhouse</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get greenhouse effect</p>
+
+<p>Gets the greenhouse effect of the planet, as a multiplier.</p>
+</div><h4 id='method.get_eff_temp' class='method'><code>fn <a href='#method.get_eff_temp' class='fnname'>get_eff_temp</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get effective temperature</p>
+
+<p>Gets the effective temperature of the planet, in Kelvin (<em>K</em>).</p>
+</div><h4 id='method.get_min_temp' class='method'><code>fn <a href='#method.get_min_temp' class='fnname'>get_min_temp</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get minimum temperature</p>
+
+<p>Gets the minimum temperature of the planet, in Kelvin (<em>K</em>).</p>
+</div><h4 id='method.get_avg_temp' class='method'><code>fn <a href='#method.get_avg_temp' class='fnname'>get_avg_temp</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get average temperature</p>
+
+<p>Gets the average temperature of the planet, in Kelvin (<em>K</em>).</p>
+</div><h4 id='method.get_max_temp' class='method'><code>fn <a href='#method.get_max_temp' class='fnname'>get_max_temp</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get maximum temperature</p>
+
+<p>Gets the maximum temperature of the planet, in Kelvin (<em>K</em>).</p>
+</div><h4 id='method.get_surface_gravity' class='method'><code>fn <a href='#method.get_surface_gravity' class='fnname'>get_surface_gravity</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<div class='docblock'><p>Get surface gravity</p>
+
+<p>Gets the surface gravity of the planet, in <em>m/s²</em>.</p>
+</div><h4 id='method.is_earth_twin' class='method'><code>fn <a href='#method.is_earth_twin' class='fnname'>is_earth_twin</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>Check if is earth twin</p>
+
+<p>Checks if the properties of the planet are similar to the ones in Earth</p>
+</div><h4 id='method.is_habitable' class='method'><code>fn <a href='#method.is_habitable' class='fnname'>is_habitable</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<h4 id='method.is_roche_ok' class='method'><code>fn <a href='#method.is_roche_ok' class='fnname'>is_roche_ok</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>Check Roche limit</p>
+
+<p>Checks if the Roche limit for the planet is correct.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+            <p>
+                Search functions by type signature (e.g.
+                <code>vec -> usize</code>)
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "bigbang";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script async src="../../search-index.js"></script>
+</body>
+</html>

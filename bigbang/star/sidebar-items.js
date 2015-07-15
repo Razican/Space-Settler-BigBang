@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["StarClass","StarClass enumeration"]],"struct":[["Star","Star structure"]]});

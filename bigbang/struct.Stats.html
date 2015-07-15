@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Stats` struct in crate `bigbang`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Stats">
+
+    <title>bigbang::Stats - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'><a href='index.html'>bigbang</a></p><script>window.sidebarCurrent = {name: 'Stats', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>bigbang</a>::<wbr><a class='struct' href=''>Stats</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-10715' class='srclink' href='../src/bigbang/main.rs.html#348-383' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Stats {
+    // some fields omitted
+}</pre><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../bigbang/struct.Stats.html' title='bigbang::Stats'>Stats</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; <a class='struct' href='../bigbang/struct.Stats.html' title='bigbang::Stats'>Stats</a></code></h4>
+<h4 id='method.add_star' class='method'><code>fn <a href='#method.add_star' class='fnname'>add_star</a>(&amp;mut self, st: &amp;<a class='struct' href='../bigbang/star/struct.Star.html' title='bigbang::star::Star'>Star</a>)</code></h4>
+<h4 id='method.add_planet' class='method'><code>fn <a href='#method.add_planet' class='fnname'>add_planet</a>(&amp;mut self, planet: &amp;<a class='struct' href='../bigbang/planet/struct.Planet.html' title='bigbang::planet::Planet'>Planet</a>)</code></h4>
+<h4 id='method.add_stats' class='method'><code>fn <a href='#method.add_stats' class='fnname'>add_stats</a>(&amp;mut self, new_stats: &amp;<a class='struct' href='../bigbang/struct.Stats.html' title='bigbang::Stats'>Stats</a>)</code></h4>
+<h4 id='method.get_total_stars' class='method'><code>fn <a href='#method.get_total_stars' class='fnname'>get_total_stars</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_black_hole_percent' class='method'><code>fn <a href='#method.get_black_hole_percent' class='fnname'>get_black_hole_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_black_holes' class='method'><code>fn <a href='#method.get_black_holes' class='fnname'>get_black_holes</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_neutron_star_percent' class='method'><code>fn <a href='#method.get_neutron_star_percent' class='fnname'>get_neutron_star_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_neutron_stars' class='method'><code>fn <a href='#method.get_neutron_stars' class='fnname'>get_neutron_stars</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_quark_star_percent' class='method'><code>fn <a href='#method.get_quark_star_percent' class='fnname'>get_quark_star_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_quark_stars' class='method'><code>fn <a href='#method.get_quark_stars' class='fnname'>get_quark_stars</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_white_dwarf_percent' class='method'><code>fn <a href='#method.get_white_dwarf_percent' class='fnname'>get_white_dwarf_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_white_dwarfs' class='method'><code>fn <a href='#method.get_white_dwarfs' class='fnname'>get_white_dwarfs</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_o_star_percent' class='method'><code>fn <a href='#method.get_o_star_percent' class='fnname'>get_o_star_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_o_stars' class='method'><code>fn <a href='#method.get_o_stars' class='fnname'>get_o_stars</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_b_star_percent' class='method'><code>fn <a href='#method.get_b_star_percent' class='fnname'>get_b_star_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_b_stars' class='method'><code>fn <a href='#method.get_b_stars' class='fnname'>get_b_stars</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_a_star_percent' class='method'><code>fn <a href='#method.get_a_star_percent' class='fnname'>get_a_star_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_a_stars' class='method'><code>fn <a href='#method.get_a_stars' class='fnname'>get_a_stars</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_f_star_percent' class='method'><code>fn <a href='#method.get_f_star_percent' class='fnname'>get_f_star_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_f_stars' class='method'><code>fn <a href='#method.get_f_stars' class='fnname'>get_f_stars</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_g_star_percent' class='method'><code>fn <a href='#method.get_g_star_percent' class='fnname'>get_g_star_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_g_stars' class='method'><code>fn <a href='#method.get_g_stars' class='fnname'>get_g_stars</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_k_star_percent' class='method'><code>fn <a href='#method.get_k_star_percent' class='fnname'>get_k_star_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_k_stars' class='method'><code>fn <a href='#method.get_k_stars' class='fnname'>get_k_stars</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_m_star_percent' class='method'><code>fn <a href='#method.get_m_star_percent' class='fnname'>get_m_star_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_m_stars' class='method'><code>fn <a href='#method.get_m_stars' class='fnname'>get_m_stars</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_total_planets' class='method'><code>fn <a href='#method.get_total_planets' class='fnname'>get_total_planets</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_gaseous_planet_percent' class='method'><code>fn <a href='#method.get_gaseous_planet_percent' class='fnname'>get_gaseous_planet_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_gaseous_planets' class='method'><code>fn <a href='#method.get_gaseous_planets' class='fnname'>get_gaseous_planets</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_hot_jupiters' class='method'><code>fn <a href='#method.get_hot_jupiters' class='fnname'>get_hot_jupiters</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_mini_neptunes' class='method'><code>fn <a href='#method.get_mini_neptunes' class='fnname'>get_mini_neptunes</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_rocky_planet_percent' class='method'><code>fn <a href='#method.get_rocky_planet_percent' class='fnname'>get_rocky_planet_percent</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_rocky_planets' class='method'><code>fn <a href='#method.get_rocky_planets' class='fnname'>get_rocky_planets</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_super_earths' class='method'><code>fn <a href='#method.get_super_earths' class='fnname'>get_super_earths</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_ocean_planets' class='method'><code>fn <a href='#method.get_ocean_planets' class='fnname'>get_ocean_planets</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_earth_twins' class='method'><code>fn <a href='#method.get_earth_twins' class='fnname'>get_earth_twins</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_habitable_planets' class='method'><code>fn <a href='#method.get_habitable_planets' class='fnname'>get_habitable_planets</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_small_planets' class='method'><code>fn <a href='#method.get_small_planets' class='fnname'>get_small_planets</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_min_gravity' class='method'><code>fn <a href='#method.get_min_gravity' class='fnname'>get_min_gravity</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_max_gravity' class='method'><code>fn <a href='#method.get_max_gravity' class='fnname'>get_max_gravity</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_min_temp' class='method'><code>fn <a href='#method.get_min_temp' class='fnname'>get_min_temp</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_max_temp' class='method'><code>fn <a href='#method.get_max_temp' class='fnname'>get_max_temp</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_min_sma' class='method'><code>fn <a href='#method.get_min_sma' class='fnname'>get_min_sma</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_max_sma' class='method'><code>fn <a href='#method.get_max_sma' class='fnname'>get_max_sma</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_min_orb_period' class='method'><code>fn <a href='#method.get_min_orb_period' class='fnname'>get_min_orb_period</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_max_orb_period' class='method'><code>fn <a href='#method.get_max_orb_period' class='fnname'>get_max_orb_period</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_min_day' class='method'><code>fn <a href='#method.get_min_day' class='fnname'>get_min_day</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_max_day' class='method'><code>fn <a href='#method.get_max_day' class='fnname'>get_max_day</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+<h4 id='method.get_max_pressure' class='method'><code>fn <a href='#method.get_max_pressure' class='fnname'>get_max_pressure</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></h4>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+            <p>
+                Search functions by type signature (e.g.
+                <code>vec -> usize</code>)
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "bigbang";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script async src="../search-index.js"></script>
+</body>
+</html>

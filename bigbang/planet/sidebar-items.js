@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["PlanetType","PlanetType enumeration"]],"struct":[["Atmosphere","Atmosphere structure"],["Orbit","Orbit structure"],["Planet","Planet structure"],["Surface","Surface structure"]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["consts","Constants"],["planet","Planet module"],["star","Star module"],["utils","Utilities for Space Settler Galaxy Creator"]],"struct":[["Stats",""]]});

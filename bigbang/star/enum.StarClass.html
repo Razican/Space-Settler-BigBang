@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `StarClass` enum in crate `bigbang`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, StarClass">
+
+    <title>bigbang::star::StarClass - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'><a href='../index.html'>bigbang</a>::<wbr><a href='index.html'>star</a></p><script>window.sidebarCurrent = {name: 'StarClass', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content enum">
+<h1 class='fqn'><span class='in-band'>Enum <a href='../index.html'>bigbang</a>::<wbr><a href='index.html'>star</a>::<wbr><a class='enum' href=''>StarClass</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-3148' class='srclink' href='../../src/bigbang/star.rs.html#19-78' title='goto source code'>[src]</a></span></h1>
+<pre class='rust enum'>pub enum StarClass {
+    BlackHole,
+    NeutronStar,
+    QuarkStar,
+    WhiteDwarf,
+    O,
+    B,
+    A,
+    F,
+    G,
+    K,
+    M,
+}</pre><div class='docblock'><p>StarClass enumeration</p>
+
+<p>This enumeration contains all the star types available in this universe creation.</p>
+</div><h2 class='variants'>Variants</h2>
+<table><tr><td id='variant.BlackHole'><code>BlackHole</code></td><td><div class='docblock'><p>This represents a black hole, an structure so dense that not even the light can escape. Due
+to the high radiation, no planets can survive near one of these structures. Their mass is
+between 2 and 20 solar masses. Approximately the 0.03333% of the stars in the galaxy will be
+of this type. Its effective temperature will be represented as 0K.</p>
+</div></td></tr><tr><td id='variant.NeutronStar'><code>NeutronStar</code></td><td><div class='docblock'><p>This represents a neutron star. Neutron stars are really compact stars, that due to their
+extreme gravitational forces not even atomic nuclei can survive, and the protons are
+degraded to neutrons. Their mass is between 1.1 and 2.2 solar masses. Due to the high
+radiation, no planet can survive near a neutron star. Some neutron stars can be seen as
+pulsars. Approximately the 0.03333% of the stars in the galaxy will be of this type.</p>
+</div></td></tr><tr><td id='variant.QuarkStar'><code>QuarkStar</code></td><td><div class='docblock'><p>This represents a quark star. Quark stars are hypothetical stars that are even more compact
+than neutron stars but they have not collapsed into black holes. They have between 2 and 3
+solar masses. They have such big pressures that even the quarks that are part of the
+neutrons get free. Approximately the 0.00001% of the stars in the galaxy will be of this
+type, so most of the galaxies will not even have one.</p>
+</div></td></tr><tr><td id='variant.WhiteDwarf'><code>WhiteDwarf</code></td><td><div class='docblock'><p>This represents a white dwarf. A white dwarf is a compact star that is usually the remnant
+of a Sun-type star. They are very dense and hot, and their size is inversely proportional to
+the cube of their mass, which can be between 0.2 and 1.39 solar masses. This last mass is
+the Chandrasekhar limit. There are not many planets around quark stars, and never more than
+2. Approximately the 0.03332% of the stars in the galaxy will be of this type.</p>
+</div></td></tr><tr><td id='variant.O'><code>O</code></td><td><div class='docblock'><p>This represents an O type star. This stars are hot and blue colored. Their surface
+temperature can be as high as 52,000K. Approximately the 0.00003% of the stars will be of
+this type, so many galaxies will not even have one. No planet can survive to the high
+radiation coming from the star.</p>
+</div></td></tr><tr><td id='variant.B'><code>B</code></td><td><div class='docblock'><p>This represents a B type star. This stars are hot and blue-white colored. Their surface
+temperature is usually between 10,000K and 30,000K and their mass between 2.1 and 16 solar
+masses. Approximately the 0.13% of the stars will be of this type. No more than 2 planets
+will survive to the radiations, and only in small B type stars.</p>
+</div></td></tr><tr><td id='variant.A'><code>A</code></td><td><div class='docblock'><p>This represents an A type of star. This stars are white stars. Their surface temperature is
+usually between 7,500K and 10,000K and their mass between 1.4 and 2.1 solar masses.
+Approximately the 0.6% of the stars will be of this type. They will have up to 3 planets
+orbiting them.</p>
+</div></td></tr><tr><td id='variant.F'><code>F</code></td><td><div class='docblock'><p>This represents an F type of star. This stars are yellow-white stars. Their surface
+temperature is usually between 6,000K and 7,500K and their mass between 1.04 and 1.4 solar
+masses. Approximately the 3% of the stars will be of this type. They will have up to 8
+planets orbiting them.</p>
+</div></td></tr><tr><td id='variant.G'><code>G</code></td><td><div class='docblock'><p>This represents an G type of star, the same type as our Sun. This stars are yellow stars.
+Their surface temperature is usually between 5,200K and 6,000K and their mass between 0.8
+and 1.04 solar masses. Approximately the 7.6% of the stars will be of this type. They will
+have up to 10 planets orbiting them.</p>
+</div></td></tr><tr><td id='variant.K'><code>K</code></td><td><div class='docblock'><p>This represents an K type of star. This stars are orange stars. Their surface temperature is
+usually between 3,700K and 5,200K and their mass between 0.45 and 0.8 solar masses.
+Approximately the 12.1% of the stars will be of this type. They will have up to 10 planets
+orbiting them.</p>
+</div></td></tr><tr><td id='variant.M'><code>M</code></td><td><div class='docblock'><p>This represents an M type of star. This stars are red stars. Their surface temperature is
+usually between 2,400K and 3,700K and their mass between 0.08 and 0.45 solar masses.
+Approximately the 76.45% of the stars will be of this type. They will have up to 9 planets
+orbiting them.</p>
+</div></td></tr></table><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='http://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../../bigbang/star/enum.StarClass.html' title='bigbang::star::StarClass'>StarClass</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='http://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+</div><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='http://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a> for <a class='enum' href='../../bigbang/star/enum.StarClass.html' title='bigbang::star::StarClass'>StarClass</a></code></h3><div class='impl-items'><h4 id='method.eq' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.eq' class='fnname'>eq</a>(&amp;self, __arg_0: &amp;<a class='enum' href='../../bigbang/star/enum.StarClass.html' title='bigbang::star::StarClass'>StarClass</a>) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<h4 id='method.ne' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.ne' class='fnname'>ne</a>(&amp;self, __arg_0: &amp;<a class='enum' href='../../bigbang/star/enum.StarClass.html' title='bigbang::star::StarClass'>StarClass</a>) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+            <p>
+                Search functions by type signature (e.g.
+                <code>vec -> usize</code>)
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "bigbang";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script async src="../../search-index.js"></script>
+</body>
+</html>
