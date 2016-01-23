@@ -15,11 +15,12 @@ pub mod utils;
 
 use std::env::args;
 use std::process::exit;
+use std::time::Duration;
 use std::thread;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{Ordering, ATOMIC_USIZE_INIT};
 
-use self::rand::Rng;
+use rand::Rng;
 
 use star::{Star, StarClass};
 use planet::{Planet, PlanetType};
@@ -193,7 +194,7 @@ fn main() {
                             while created_stars_clone.load(Ordering::SeqCst) < (star_count as usize) {
                                 print!("Created {} stars and their planets.\r",
                                     created_stars_clone.load(Ordering::SeqCst));
-                                thread::sleep_ms(50);
+                                thread::sleep(Duration::from_millis(50));
                             }
                             println!("It seems that all stars have been created. Finishing...");
                         }));
