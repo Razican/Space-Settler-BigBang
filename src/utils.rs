@@ -18,7 +18,7 @@ use std::f64::consts::PI;
 /// # assert_eq!(360_f64, deg);
 /// ```
 pub fn rad_to_deg(rads: f64) -> f64 {
-    rads*180_f64/PI
+    rads * 180_f64 / PI
 }
 
 /// Converts degrees to radians
@@ -34,7 +34,7 @@ pub fn rad_to_deg(rads: f64) -> f64 {
 /// # assert_eq!(2_f64*PI, rad);
 /// ```
 pub fn deg_to_rad(degs: f64) -> f64 {
-    degs*PI/180_f64
+    degs * PI / 180_f64
 }
 
 /// Converts Celsius degrees (*°C*)to Kelvin (*K*)
@@ -49,7 +49,7 @@ pub fn deg_to_rad(degs: f64) -> f64 {
 /// # assert_eq!(473.15_f64, kelvin);
 /// ```
 pub fn celsius_to_kelvin(celsius: f64) -> f64 {
-    celsius+273.15_f64
+    celsius + 273.15_f64
 }
 
 /// Converts Kelvins (*K*) to Celsius (*°C*)
@@ -64,7 +64,7 @@ pub fn celsius_to_kelvin(celsius: f64) -> f64 {
 /// # assert_eq!(0_f64, celsius);
 /// ```
 pub fn kelvin_to_celsius(kelvin: f64) -> f64 {
-    kelvin-273.15_f64
+    kelvin - 273.15_f64
 }
 
 /// Checks if water can be liquid
@@ -110,32 +110,32 @@ pub fn can_water_be_ice(min_temp: f64, pressure: f64) -> bool {
 }
 
 fn get_water_vaporize_pressure(temp: f64) -> f64 {
-    -2836.5744*temp.powi(-2) -6028.076559/temp +19.54263612 -0.02737830188*temp
-    +1.6261698e-5*temp.powi(2)+7.022905e-10*temp.powi(3)
-    -1.8680009e-13*temp.powi(4)+2.7150305*temp.ln()
+    -2836.5744 * temp.powi(-2) - 6028.076559 / temp + 19.54263612 - 0.02737830188 * temp +
+    1.6261698e-5 * temp.powi(2) + 7.022905e-10 * temp.powi(3) - 1.8680009e-13 * temp.powi(4) +
+    2.7150305 * temp.ln()
 }
 
 fn get_water_sublimation_pressure(temp: f64) -> f64 {
-    (-5723.265/temp+9.550426-0.00728332*temp+3.53068*temp.ln()).exp()
+    (-5723.265 / temp + 9.550426 - 0.00728332 * temp + 3.53068 * temp.ln()).exp()
 }
 
 fn get_water_melt_pressure(temp: f64) -> f64 {
-    -395.2*((temp/273.16).powi(9)-1_f64)*1e+6
+    -395.2 * ((temp / 273.16).powi(9) - 1_f64) * 1e+6
 }
 
 #[cfg(test)]
 mod tests {
-	use std::f64::consts::PI;
-	use super::*;
+    use std::f64::consts::PI;
+    use super::*;
 
     #[test]
     fn it_rad_to_deg() {
-        assert_eq!(360_f64, rad_to_deg(2_f64*PI));
+        assert_eq!(360_f64, rad_to_deg(2_f64 * PI));
     }
 
     #[test]
     fn it_deg_to_rad() {
-        assert_eq!(2_f64*PI, deg_to_rad(360_f64));
+        assert_eq!(2_f64 * PI, deg_to_rad(360_f64));
     }
 
     #[test]
