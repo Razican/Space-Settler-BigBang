@@ -11,3 +11,22 @@ Big-Bang generator for Space Settler.
 
 [dependencies]
 rand="0.3" # In the future substitute by Mersenne Twister
+
+# The release profile, used for `cargo build`.
+[profile.dev]
+opt-level = 0
+debug = true
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 1
+panic = 'unwind'
+
+# The release profile, used for `cargo build --release`.
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+panic = 'unwind'

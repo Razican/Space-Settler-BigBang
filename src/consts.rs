@@ -15,6 +15,8 @@ pub const EARTH_MASS: f64 = 5.9726e+24;
 pub const EARTH_RADIUS: f64 = 6_371_000_f64;
 /// The atmospheric pressure at sea level in Earth, in pascals (*Pa*).
 pub const EARTH_ATM_PRESSURE: f64 = 101_325_f64;
+/// The surface gravity in Earth, in *m/s²*.
+pub const EARTH_GRAVITY: f64 = 9.80665;
 
 /// The mass of Jupiter (M<sub>j</sub>), in *kg*.
 pub const JUPITER_MASS: f64 = 1.898e+27;

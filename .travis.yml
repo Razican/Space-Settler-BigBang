@@ -17,18 +17,14 @@ rust:
   - nightly
   - beta
   - stable
-  - 1.9.0
-  - 1.8.0
-  - 1.7.0
-  - 1.6.0
-  - 1.5.0
+  - 1.11.0
   - 1.4.0
 
 # load travis-cargo
 before_script:
   - |
       if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      pip install 'travis-cargo<0.2' --user &&
+      pip install git+https://github.com/FractalGlobal/travis-cargo.git@fix-coveralls --user &&
       export PATH=$HOME/.local/bin:$PATH
       fi
 
@@ -53,8 +49,8 @@ after_success:
       travis-cargo --only stable doc-upload;
       fi
   - |
-      if [["$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable"]]; then
-      travis-cargo coveralls --no-sudo --verify;
+      if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      travis-cargo --only stable coveralls --no-sudo --verify;
       fi
 
 env:

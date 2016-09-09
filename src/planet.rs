@@ -338,17 +338,17 @@ impl<'p> Planet<'p> {
     ///
     /// Checks if the properties of the planet are similar to the ones in Earth
     pub fn is_earth_twin(&self) -> bool {
-        self.planet_type == PlanetType::Rocky && self.mass < 4_f64 * EARTH_MASS &&
+        self.planet_type == PlanetType::Rocky && self.mass < 2.5_f64 * EARTH_MASS &&
         self.mass > 0.5_f64 * EARTH_MASS && self.radius < 1.5_f64 * EARTH_RADIUS &&
         self.radius > 0.6_f64 * EARTH_RADIUS && self.min_temp > 200_f64 &&
-        self.min_temp < 265_f64 && self.avg_temp > 278_f64 &&
-        self.avg_temp < 295_f64 && self.max_temp > 290_f64 && self.max_temp < 325_f64 &&
-        self.get_atmosphere().unwrap().get_pressure() > 60_000_f64 &&
-        self.get_atmosphere().unwrap().get_pressure() < 175_000_f64 &&
-        self.get_atmosphere().unwrap().get_o2() < 0.3_f64 &&
+        self.min_temp < 280_f64 && self.avg_temp > 270_f64 &&
+        self.avg_temp < 310_f64 && self.max_temp > 275_f64 && self.max_temp < 330_f64 &&
+        self.get_atmosphere().unwrap().get_pressure() > 40_000_f64 &&
+        self.get_atmosphere().unwrap().get_pressure() < 150_000_f64 &&
+        self.get_atmosphere().unwrap().get_o2() < 0.35_f64 &&
         self.get_atmosphere().unwrap().get_o2() > 0.15_f64 &&
-        self.get_atmosphere().unwrap().get_co2() < 0.05_f64 &&
-        self.get_atmosphere().unwrap().get_co() < 0.005_f64
+        self.get_atmosphere().unwrap().get_co2() < 0.1_f64 &&
+        self.get_atmosphere().unwrap().get_co() < 0.01_f64
     }
 
     pub fn is_habitable(&self) -> bool {
@@ -393,9 +393,9 @@ impl<'p> Planet<'p> {
         }
 
         let ecc = if sma / AU < st.get_mass() / (SUN_MASS * 2_f64) {
-            rand::thread_rng().gen_range(0.05_f64, 0.25_f64)
+            rand::thread_rng().gen_range(0.05_f64, 0.3_f64)
         } else if sma / AU < st.get_mass() / SUN_MASS * 30_f64 {
-            rand::thread_rng().gen_range(0_f64, 0.45_f64)
+            rand::thread_rng().gen_range(0_f64, 0.15_f64)
         } else {
             rand::thread_rng().gen_range(0_f64, 0.1_f64)
         };
@@ -646,12 +646,7 @@ impl<'p> Planet<'p> {
             };
 
             let fresh_water = if ocean > 0_f64 && left > 0_f64 {
-                rand::thread_rng().gen_range(0_f64,
-                                             if left > 0.1_f64 {
-                                                 0.1_f64
-                                             } else {
-                                                 left
-                                             })
+                rand::thread_rng().gen_range(0_f64, if left > 0.1_f64 { 0.1_f64 } else { left })
             } else {
                 0_f64
             };
@@ -775,11 +770,8 @@ impl<'p> Planet<'p> {
         let f1 = orbit.get_day().powf(1_f64 / 8_f64) / 8.25_f64;
         let min_temp = avg_temp *
                        (1_f64 -
-                        (if f1 > 1_f64 {
-            0.99999_f64
-        } else {
-            f1
-        }) * (1_f64 - atm_pressure.powf(1_f64 / 3_f64) / 300_f64) *
+                        (if f1 > 1_f64 { 0.99999_f64 } else { f1 }) *
+                        (1_f64 - atm_pressure.powf(1_f64 / 3_f64) / 300_f64) *
                         (1_f64 - orbit.get_ecc()) *
                         ((orbit.get_ax_tilt() - PI) / PI).abs());
 

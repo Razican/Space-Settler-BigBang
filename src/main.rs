@@ -66,7 +66,7 @@ fn main() {
                     } else {
                         let mut verbose = false;
                         let mut threads = 1;
-                        let mut star_count = rand::thread_rng().gen_range(950_000, 1_050_000);
+                        let mut star_count = rand::thread_rng().gen_range(950_0000, 1_050_0000);
                         let galaxy_id = galaxy_id_parsed.unwrap();
 
                         while let Some(argument) = args.next() {
@@ -247,11 +247,7 @@ fn show_help(error: bool) {
     println!("-g, --create-galaxy\tGenerates a complete new galaxy and shows statistics (not yet \
               functional).");
     println!("");
-    if error {
-        exit(1)
-    } else {
-        exit(0)
-    }
+    if error { exit(1) } else { exit(0) }
 }
 
 fn show_creation_help(error: bool) {
@@ -262,11 +258,7 @@ fn show_creation_help(error: bool) {
               and 1,050,000.");
     println!("-v, --verbose\tVerbose output.");
     println!("");
-    if error {
-        exit(1)
-    } else {
-        exit(0)
-    }
+    if error { exit(1) } else { exit(0) }
 }
 
 fn print_star(star: &Star) {
@@ -274,7 +266,8 @@ fn print_star(star: &Star) {
 
     println!("\tID: {}", star.get_id());
     println!("\tGalaxy: {}", star.get_galaxy_id());
-    println!("\tOrbit: {} light years", star.get_orbit());
+    println!("\tOrbit: {} light years from the center of the galaxy",
+             star.get_orbit());
     println!("\tClass: {:?}", star.get_class());
     println!("\tMass: {:.2} M☉", star.get_mass() / consts::SUN_MASS);
     println!("\tRadius: {:.2} R☉",
@@ -306,6 +299,9 @@ fn print_planet(planet: &Planet) {
                  planet.get_radius() / consts::EARTH_RADIUS);
     }
     println!("\tDensity: {} kg/m³", planet.get_density());
+    println!("\tSurface gravity: {:.2}m/s² ({:.2}g)",
+             planet.get_surface_gravity(),
+             planet.get_surface_gravity() / EARTH_GRAVITY);
     if planet.get_type() == &PlanetType::Rocky {
         println!("\tMinimum temperature: {:.2}°C",
                  kelvin_to_celsius(planet.get_min_temp()));
@@ -409,10 +405,12 @@ fn print_stats(st: &Stats) {
              st.get_mini_neptunes());
 
     println!("Records:");
-    println!("\tMinimum surface gravity: {:.3} m/s²",
-             st.get_min_gravity());
-    println!("\tMaximum surface gravity: {:.3} m/s²",
-             st.get_max_gravity());
+    println!("\tMinimum surface gravity: {:.3} m/s² ({:.2}g)",
+             st.get_min_gravity(),
+             st.get_min_gravity() / EARTH_GRAVITY);
+    println!("\tMaximum surface gravity: {:.3} m/s² ({:.2}g)",
+             st.get_max_gravity(),
+             st.get_max_gravity() / EARTH_GRAVITY);
     println!("\tMinimum temperature: {:.2}K ({:.2}°C)",
              st.get_min_temp(),
              kelvin_to_celsius(st.get_min_temp()));
