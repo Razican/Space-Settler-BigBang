@@ -129,14 +129,14 @@ fn main() {
 
                         // Galaxy creation
                         println!("Creating a galaxy of {} stars...", star_count);
-                        println!("");
+                        println!();
 
                         if verbose {
                             println!("Threads: {}", threads);
                             println!("Stars per thread: {}-{}",
                                      star_count / (threads as u64),
                                      star_count % (threads as u64) + star_count / (threads as u64));
-                            println!("");
+                            println!();
                         }
 
                         let shared_stats = Arc::new(Mutex::new(Stats::new()));
@@ -240,24 +240,24 @@ fn main() {
 }
 
 fn show_help(error: bool) {
-    println!("");
+    println!();
     println!("You must include the action you want. Currently you have these options:");
     println!("-e, --earth\t\tGenerates lots of random stars and planets until it finds an earth \
               twin.");
     println!("-g, --create-galaxy\tGenerates a complete new galaxy and shows statistics (not yet \
               functional).");
-    println!("");
+    println!();
     if error { exit(1) } else { exit(0) }
 }
 
 fn show_creation_help(error: bool) {
-    println!("");
+    println!();
     println!("You can specify the following parameters:");
     println!("-t, --threads\tThe number of threads to use during the creation. By default, 1.");
     println!("-s, --stars\tThe number of stars to create. By default, randomly between 950,000 \
               and 1,050,000.");
     println!("-v, --verbose\tVerbose output.");
-    println!("");
+    println!();
     if error { exit(1) } else { exit(0) }
 }
 
@@ -276,7 +276,7 @@ fn print_star(star: &Star) {
     println!("\tTemperature: {} K", star.get_temperature());
     println!("\tLuminosity: {:.4} suns",
              star.get_luminosity() / consts::SUN_LUMINOSITY);
-    println!("");
+    println!();
 }
 
 fn print_planet(planet: &Planet) {
@@ -347,7 +347,7 @@ fn print_planet(planet: &Planet) {
         println!("\t\tHelium (He): {:.2}%",
                  planet.get_atmosphere().unwrap().get_he() * 100_f64);
     }
-    println!("");
+    println!();
 }
 
 fn print_stats(st: &Stats) {
@@ -365,7 +365,7 @@ fn print_stats(st: &Stats) {
     println!("\tWhite dwarfs: {} ({:.5}%)",
              st.get_white_dwarfs(),
              st.get_white_dwarf_percent() * 100_f64);
-    println!("");
+    println!();
     println!("\tO type stars: {} ({:.5}%)",
              st.get_o_stars(),
              st.get_o_star_percent() * 100_f64);
@@ -420,7 +420,7 @@ fn print_stats(st: &Stats) {
     println!("\tMaximum surface atmospheric pressure: {:.2} Pa ({:.2} Atm)",
              st.get_max_pressure(),
              st.get_max_pressure() / EARTH_ATM_PRESSURE);
-    println!("");
+    println!();
 
     println!("\tMinimum sMa: {:.4} AU", st.get_min_sma() / AU);
     println!("\tMaximum sMa: {:.2} AU", st.get_max_sma() / AU);
@@ -434,7 +434,7 @@ fn print_stats(st: &Stats) {
     println!("\tLongest day: {:.2} years",
              st.get_max_day() / (3600_f64 * 24_f64 * 365.256363004));
 
-    println!("");
+    println!();
 }
 
 pub struct Stats {
