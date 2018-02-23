@@ -110,9 +110,9 @@ pub fn can_water_be_ice(min_temp: f64, pressure: f64) -> bool {
 }
 
 fn get_water_vaporize_pressure(temp: f64) -> f64 {
-    -2836.5744 * temp.powi(-2) - 6028.076559 / temp + 19.54263612 - 0.02737830188 * temp +
-    1.6261698e-5 * temp.powi(2) + 7.022905e-10 * temp.powi(3) - 1.8680009e-13 * temp.powi(4) +
-    2.7150305 * temp.ln()
+    -2836.5744 * temp.powi(-2) - 6028.076559 / temp + 19.54263612 - 0.02737830188 * temp
+        + 1.6261698e-5 * temp.powi(2) + 7.022905e-10 * temp.powi(3)
+        - 1.8680009e-13 * temp.powi(4) + 2.7150305 * temp.ln()
 }
 
 fn get_water_sublimation_pressure(temp: f64) -> f64 {

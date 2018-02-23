@@ -10,7 +10,7 @@ Big-Bang generator for Space Settler.
 """
 
 [dependencies]
-rand="0.3" # In the future substitute by Mersenne Twister
+rand="0.4.2" # In the future substitute by Mersenne Twister
 
 # The release profile, used for `cargo build`.
 [profile.dev]

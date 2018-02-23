@@ -12,11 +12,11 @@ use self::rand::Rng;
 
 use consts::*;
 
-/// StarClass enumeration
+/// Star class enumeration
 ///
 /// This enumeration contains all the star types available in this universe creation.
-#[derive(PartialEq)]
-pub enum StarClass {
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Class {
     /// This represents a black hole, an structure so dense that not even the light can escape. Due
     /// to the high radiation, no planets can survive near one of these structures. Their mass is
     /// between 2 and 20 solar masses. Approximately the 0.03333% of the stars in the galaxy will be
@@ -77,20 +77,20 @@ pub enum StarClass {
     M,
 }
 
-impl fmt::Debug for StarClass {
+impl fmt::Display for Class {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            StarClass::BlackHole => write!(f, "black hole"),
-            StarClass::NeutronStar => write!(f, "neutron star"),
-            StarClass::QuarkStar => write!(f, "quark star"),
-            StarClass::WhiteDwarf => write!(f, "white dwarf"),
-            StarClass::O => write!(f, "O"),
-            StarClass::B => write!(f, "B"),
-            StarClass::A => write!(f, "A"),
-            StarClass::F => write!(f, "F"),
-            StarClass::G => write!(f, "G"),
-            StarClass::K => write!(f, "K"),
-            StarClass::M => write!(f, "M"),
+            Class::BlackHole => write!(f, "black hole"),
+            Class::NeutronStar => write!(f, "neutron star"),
+            Class::QuarkStar => write!(f, "quark star"),
+            Class::WhiteDwarf => write!(f, "white dwarf"),
+            Class::O => write!(f, "O"),
+            Class::B => write!(f, "B"),
+            Class::A => write!(f, "A"),
+            Class::F => write!(f, "F"),
+            Class::G => write!(f, "G"),
+            Class::K => write!(f, "K"),
+            Class::M => write!(f, "M"),
         }
     }
 }
@@ -98,11 +98,12 @@ impl fmt::Debug for StarClass {
 /// Star structure
 ///
 /// This structure represents all the parameters of the given star.
+#[derive(Debug, Clone, Copy)]
 pub struct Star {
     id: u64,
     galaxy_id: u32,
     orb_radius: u32,
-    class: StarClass,
+    class: Class,
     mass: f64,
     radius: f64,
     temperature: u32,
@@ -123,7 +124,7 @@ impl Star {
     /// let st = Star::new(0, 1);
     /// ```
     pub fn new(last_id: u64, galaxy: u32) -> Star {
-        let orbit = rand::thread_rng().gen_range(20000, 30001);
+        let orbit = rand::thread_rng().gen_range(20_000, 30_001);
         let star_class = Star::generate_class();
         let (star_mass, star_radius, star_temperature) = Star::generate_properties(&star_class);
 
@@ -162,7 +163,7 @@ impl Star {
     /// Get class
     ///
     /// Gets the class of the star.
-    pub fn get_class(&self) -> &StarClass {
+    pub fn get_class(&self) -> &Class {
         &self.class
     }
 
@@ -214,22 +215,22 @@ impl Star {
     ///
     /// Generates the class of the star taking into account real star proportions in the known
     /// universe.
-    fn generate_class() -> StarClass {
-        let prob = rand::thread_rng().gen_range(1, 10000001);
+    fn generate_class() -> Class {
+        let prob = rand::thread_rng().gen_range(1, 10_000_001);
 
         // Generate star class based on probabilities.
         match prob {
-            0...3_333 => StarClass::BlackHole,
-            3_334...6_666 => StarClass::NeutronStar,
-            6_667 => StarClass::QuarkStar,
-            6_668...10_000 => StarClass::WhiteDwarf,
-            10_001...10_003 => StarClass::O,
-            10_004...23_000 => StarClass::B,
-            23_001...83_000 => StarClass::A,
-            83_001...383_000 => StarClass::F,
-            383_001...1_143_000 => StarClass::G,
-            1_143_001...2_353_000 => StarClass::K,
-            2_353_001...10_000_000 => StarClass::M,
+            0...3_333 => Class::BlackHole,
+            3_334...6_666 => Class::NeutronStar,
+            6_667 => Class::QuarkStar,
+            6_668...10_000 => Class::WhiteDwarf,
+            10_001...10_003 => Class::O,
+            10_004...23_000 => Class::B,
+            23_001...83_000 => Class::A,
+            83_001...383_000 => Class::F,
+            383_001...1_143_000 => Class::G,
+            1_143_001...2_353_000 => Class::K,
+            2_353_001...10_000_000 => Class::M,
             _ => unreachable!(),
         }
     }
@@ -238,15 +239,15 @@ impl Star {
     ///
     /// Generates the basic properties (mass, radius and effective surface temperature) of the star
     /// taking into account the star class.
-    fn generate_properties(class: &StarClass) -> (f64, f64, u32) {
+    fn generate_properties(class: &Class) -> (f64, f64, u32) {
         match *class {
-            StarClass::BlackHole => {
+            Class::BlackHole => {
                 let mass = if rand::thread_rng().gen_range(0, 2) == 0 {
                     // 5 - 10 solar masses
-                    rand::thread_rng().gen_range(9.942e+30_f64, 1.9884e+31_f64)
+                    rand::thread_rng().gen_range(9.942_e+30_f64, 1.9884_e+31_f64)
                 } else {
                     // 2 - 20 solar masses
-                    rand::thread_rng().gen_range(3.9768e+30_f64, 3.9768e+31_f64)
+                    rand::thread_rng().gen_range(3.9768_e+30_f64, 3.9768_e+31_f64)
                 };
 
                 let radius = 2_f64 * G * mass / C.powi(2); // m
@@ -254,32 +255,32 @@ impl Star {
 
                 (mass, radius, temperature)
             }
-            StarClass::NeutronStar => {
+            Class::NeutronStar => {
                 // 1.1 - 2.2 solar masses
-                let mass = rand::thread_rng().gen_range(2.18724e+30_f64, 4.37448e+30_f64);
+                let mass = rand::thread_rng().gen_range(2.18724_e+30_f64, 4.37448_e+30_f64);
 
                 let radius = rand::thread_rng().gen_range(11_000_f64, 15_000_f64); // m
                 let temperature = rand::thread_rng().gen_range(100_000, 10_000_001); // Kelvin
 
                 (mass, radius, temperature)
             }
-            StarClass::QuarkStar => {
+            Class::QuarkStar => {
                 // 2 - 3 solar masses
-                let mass = rand::thread_rng().gen_range(3.9768e+30_f64, 5.9652e+30_f64);
+                let mass = rand::thread_rng().gen_range(3.9768_e+30_f64, 5.9652_e+30_f64);
 
                 let radius = rand::thread_rng().gen_range(11_000_f64, 15_000_f64); // m
                 let temperature = rand::thread_rng().gen_range(8_000_000, 100_000_001); // Kelvin
 
                 (mass, radius, temperature)
             }
-            StarClass::WhiteDwarf => {
+            Class::WhiteDwarf => {
                 // 0.2 - 1.3 solar masses
-                let mass = rand::thread_rng().gen_range(3.9768e+29_f64, 2.58492e+30_f64);
+                let mass = rand::thread_rng().gen_range(3.9768_e+29_f64, 2.58492_e+30_f64);
 
-                let radius = 0.78e+7_f64 *
-                             ((CH_LIMIT / mass).powf(2_f64 / 3_f64) -
-                              (mass / CH_LIMIT).powf(2_f64 / 3_f64))
-                    .sqrt();
+                let radius = 0.78_e+7_f64
+                    * ((CH_LIMIT / mass).powf(2_f64 / 3_f64)
+                        - (mass / CH_LIMIT).powf(2_f64 / 3_f64))
+                        .sqrt();
 
                 let temperature = if rand::thread_rng().gen_range(0, 4) == 0 {
                     rand::thread_rng().gen_range(4_000, 150_001) // Kelvin
@@ -289,82 +290,83 @@ impl Star {
 
                 (mass, radius, temperature)
             }
-            StarClass::O => {
+            Class::O => {
                 // 15 - 90 solar masses
-                let mass = rand::thread_rng().gen_range(2.9826e+31_f64, 1.78956e+32_f64);
+                let mass = rand::thread_rng().gen_range(2.9826_e+31_f64, 1.78956_e+32_f64);
 
                 // 6.6 - 40 solar radius
-                let radius = rand::thread_rng().gen_range(4.5936e+9_f64, 2.784e+10_f64);
+                let radius = rand::thread_rng().gen_range(4.5936_e+9_f64, 2.784_e+10_f64);
                 let temperature = rand::thread_rng().gen_range(30_000, 52_001); // Kelvin
 
                 (mass, radius, temperature)
             }
-            StarClass::B => {
+            Class::B => {
                 // 2.1 - 16 solar masses
-                let mass = rand::thread_rng().gen_range(4.17564e+30_f64, 3.18144e+31_f64);
+                let mass = rand::thread_rng().gen_range(4.17564_e+30_f64, 3.18144_e+31_f64);
 
                 // 1.8 - 6.6 solar radius
-                let radius = rand::thread_rng().gen_range(1.2528e+9_f64, 4.5936e+9_f64);
+                let radius = rand::thread_rng().gen_range(1.2528_e+9_f64, 4.5936_e+9_f64);
                 let temperature = rand::thread_rng().gen_range(10_000, 30_001); // Kelvin
 
                 (mass, radius, temperature)
             }
-            StarClass::A => {
+            Class::A => {
                 // 1.4 - 2.1 solar masses
-                let mass = rand::thread_rng().gen_range(2.78376e+30_f64, 4.17564e+30_f64);
+                let mass = rand::thread_rng().gen_range(2.78376_e+30_f64, 4.17564_e+30_f64);
 
                 // 1.4 - 1.8 solar radius
-                let radius = rand::thread_rng().gen_range(9.744e+8_f64, 1.2528e+9_f64);
+                let radius = rand::thread_rng().gen_range(9.744_e+8_f64, 1.2528_e+9_f64);
                 let temperature = rand::thread_rng().gen_range(7_500, 10_001); // Kelvin
 
                 (mass, radius, temperature)
             }
-            StarClass::F => {
+            Class::F => {
                 // 1.04 - 1.4 solar masses
-                let mass = rand::thread_rng().gen_range(2.067936e+30_f64, 2.78376e+30_f64);
+                let mass = rand::thread_rng().gen_range(2.067936_e+30_f64, 2.78376_e+30_f64);
 
                 // 1.15 - 1.4 solar radius
-                let radius = rand::thread_rng().gen_range(8.004e+8_f64, 9.744e+8_f64);
+                let radius = rand::thread_rng().gen_range(8.004_e+8_f64, 9.744_e+8_f64);
                 let temperature = rand::thread_rng().gen_range(6_000, 7_501); // Kelvin
 
                 (mass, radius, temperature)
             }
-            StarClass::G => {
+            Class::G => {
                 // 0.8 - 1.04 solar masses
-                let mass = rand::thread_rng().gen_range(1.59072e+30_f64, 2.067936e+30_f64);
+                let mass = rand::thread_rng().gen_range(1.59072_e+30_f64, 2.067936_e+30_f64);
 
                 // 0.96 - 1.15 solar radius
-                let radius = rand::thread_rng().gen_range(6.6816e+8_f64, 8.004e+8_f64);
+                let radius = rand::thread_rng().gen_range(6.6816_e+8_f64, 8.004_e+8_f64);
                 let temperature = rand::thread_rng().gen_range(5_200, 6_001); // Kelvin
 
                 (mass, radius, temperature)
             }
-            StarClass::K => {
+            Class::K => {
                 // 0.45 - 0.8 solar masses
-                let mass = rand::thread_rng().gen_range(8.9478e+29_f64, 1.59072e+30_f64);
+                let mass = rand::thread_rng().gen_range(8.9478_e+29_f64, 1.59072_e+30_f64);
 
                 // 0.7 - 0.96 solar radius
-                let radius = rand::thread_rng().gen_range(4.872e+8_f64, 6.6816e+8_f64);
+                let radius = rand::thread_rng().gen_range(4.872_e+8_f64, 6.6816_e+8_f64);
                 let temperature = rand::thread_rng().gen_range(3_700, 5_201); // Kelvin
 
                 (mass, radius, temperature)
             }
-            StarClass::M => {
+            Class::M => {
                 let mass = if rand::thread_rng().gen_range(0, 4) == 0 {
                     // 0.1 - 0.45 solar masses
-                    rand::thread_rng().gen_range(1.9884e+29_f64, 8.9478e+29_f64)
+                    rand::thread_rng().gen_range(1.9884_e+29_f64, 8.9478_e+29_f64)
                 } else {
                     // 0.1 - 0.25 solar masses
-                    rand::thread_rng().gen_range(1.9884e+29_f64, 4.971e+29_f64)
+                    rand::thread_rng().gen_range(1.9884_e+29_f64, 4.971_e+29_f64)
                 };
 
                 let radius = if rand::thread_rng().gen_range(0, 4) == 0 {
                     // solar_masses-0.05 - 0.7 solar radius
                     rand::thread_rng()
-                        .gen_range((mass / SUN_MASS - 0.05) * SUN_RADIUS, 4.872e+8_f64)
+                        .gen_range((mass / SUN_MASS - 0.05) * SUN_RADIUS, 4.872_e+8_f64)
                 } else {
                     // solar_masses-0.05 - 0.5 solar radius
-                    rand::thread_rng().gen_range((mass / SUN_MASS - 0.05) * SUN_RADIUS, 3.48e+8_f64)
+                    rand::thread_rng()
+                        .gen_range((mass / SUN_MASS - 0.05) * SUN_RADIUS, 3.48_e+8_f64)
                 };
 
                 let temperature = rand::thread_rng().gen_range(2_500, 3_701); // Kelvin
@@ -380,37 +382,35 @@ impl Star {
     /// bodies in the solar system.
     pub fn generate_num_bodies(&self) -> u8 {
         match self.class {
-            StarClass::O | StarClass::BlackHole | StarClass::NeutronStar | StarClass::QuarkStar => {
-                0
-            }
-            StarClass::WhiteDwarf | StarClass::B => {
+            Class::O | Class::BlackHole | Class::NeutronStar | Class::QuarkStar => 0,
+            Class::WhiteDwarf | Class::B => {
                 if self.get_luminosity() < 300_f64 * SUN_LUMINOSITY {
                     rand::thread_rng().gen_range(0, 3)
                 } else {
                     0
                 }
             }
-            StarClass::A => rand::thread_rng().gen_range(0, 4),
-            StarClass::F => rand::thread_rng().gen_range(0, 9),
-            StarClass::G => {
-                if rand::thread_rng().gen_range(0, 11) != 0 {
-                    rand::thread_rng().gen_range(4, 11)
-                } else {
+            Class::A => rand::thread_rng().gen_range(0, 4),
+            Class::F => rand::thread_rng().gen_range(0, 9),
+            Class::G => {
+                if rand::thread_rng().gen_range(0, 11) == 0 {
                     rand::thread_rng().gen_range(0, 4)
+                } else {
+                    rand::thread_rng().gen_range(4, 11)
                 }
             }
-            StarClass::K => {
-                if rand::thread_rng().gen_range(0, 16) != 0 {
-                    rand::thread_rng().gen_range(5, 13)
-                } else {
+            Class::K => {
+                if rand::thread_rng().gen_range(0, 16) == 0 {
                     rand::thread_rng().gen_range(0, 5)
+                } else {
+                    rand::thread_rng().gen_range(5, 13)
                 }
             }
-            StarClass::M => {
-                if rand::thread_rng().gen_range(0, 21) != 0 {
-                    rand::thread_rng().gen_range(7, 16)
-                } else {
+            Class::M => {
+                if rand::thread_rng().gen_range(0, 21) == 0 {
                     rand::thread_rng().gen_range(0, 7)
+                } else {
+                    rand::thread_rng().gen_range(7, 16)
                 }
             }
         }
@@ -430,21 +430,25 @@ impl Star {
             } else if luminosity < 0.5 * SUN_LUMINOSITY {
                 rand::thread_rng().gen_range(0.015_f64, 0.1_f64)
             } else if luminosity < 6_f64 * SUN_LUMINOSITY {
-                if rand::thread_rng().gen_range(0, (10_f64 - luminosity / SUN_LUMINOSITY) as u8) >
-                   0 {
+                if rand::thread_rng().gen_range(0, (10_f64 - luminosity / SUN_LUMINOSITY) as u8) > 0
+                {
                     rand::thread_rng().gen_range(0.01_f64, 0.1_f64)
                 } else {
                     rand::thread_rng().gen_range(0.025_f64, 0.6_f64)
                 }
             } else if luminosity < 10_f64 * SUN_LUMINOSITY {
-                rand::thread_rng().gen_range(0.1 * luminosity / SUN_LUMINOSITY,
-                                             0.3 * luminosity / SUN_LUMINOSITY)
+                rand::thread_rng().gen_range(
+                    0.1 * luminosity / SUN_LUMINOSITY,
+                    0.3 * luminosity / SUN_LUMINOSITY,
+                )
             } else if luminosity < 30_f64 * SUN_LUMINOSITY {
                 if luminosity * 0.15 > 3_f64 {
                     rand::thread_rng().gen_range(0.1 * luminosity / SUN_LUMINOSITY, 3_f64)
                 } else {
-                    rand::thread_rng().gen_range(0.1 * luminosity / SUN_LUMINOSITY,
-                                                 0.15 * luminosity / SUN_LUMINOSITY)
+                    rand::thread_rng().gen_range(
+                        0.1 * luminosity / SUN_LUMINOSITY,
+                        0.15 * luminosity / SUN_LUMINOSITY,
+                    )
                 }
             } else {
                 rand::thread_rng().gen_range(2.5_f64, 5_f64)
@@ -466,7 +470,7 @@ impl Star {
 #[cfg(test)]
 mod tests {
     use super::Star;
-    use super::StarClass;
+    use super::Class;
     use super::super::consts::*;
 
     #[test]
@@ -475,7 +479,7 @@ mod tests {
             id: 2,
             galaxy_id: 5,
             orb_radius: 26_000,
-            class: StarClass::G,
+            class: Class::G,
             mass: 1.9885e+30_f64,
             radius: 6.96e+8_f64,
             temperature: 5_778,
@@ -484,7 +488,7 @@ mod tests {
         assert_eq!(2, st.get_id());
         assert_eq!(5, st.get_galaxy_id());
         assert_eq!(26_000, st.get_orbit());
-        assert_eq!(&StarClass::G, st.get_class());
+        assert_eq!(&Class::G, st.get_class());
         assert_eq!(1.9885e+30_f64, st.get_mass());
         assert_eq!(6.96e+8_f64, st.get_radius());
         assert_eq!(5_778, st.get_temperature());
@@ -504,14 +508,16 @@ mod tests {
             id: 2,
             galaxy_id: 5,
             orb_radius: 26_000,
-            class: StarClass::G,
+            class: Class::G,
             mass: 1.9885e+30_f64,
             radius: 6.96e+8_f64,
             temperature: 5_778,
         };
 
-        assert!(st.get_luminosity() > 384.6e+24_f64 * 0.999 &&
-                st.get_luminosity() < 384.6e+24_f64 * 1.001);
+        assert!(
+            st.get_luminosity() > 384.6_e+24_f64 * 0.999
+                && st.get_luminosity() < 384.6_e+24_f64 * 1.001
+        );
     }
 
     #[test]
@@ -520,13 +526,15 @@ mod tests {
             id: 2,
             galaxy_id: 5,
             orb_radius: 26_000,
-            class: StarClass::G,
-            mass: 1.9885e+30_f64,
-            radius: 6.96e+8_f64,
+            class: Class::G,
+            mass: 1.9885_e+30_f64,
+            radius: 6.96_e+8_f64,
             temperature: 5_778,
         };
 
-        assert!(st.get_volume() > 1.412e+27_f64 * 0.999 && st.get_volume() < 1.412e+27_f64 * 1.001);
+        assert!(
+            st.get_volume() > 1.412_e+27_f64 * 0.999 && st.get_volume() < 1.412_e+27_f64 * 1.001
+        );
     }
 
     #[test]
@@ -535,7 +543,7 @@ mod tests {
             id: 2,
             galaxy_id: 5,
             orb_radius: 26_000,
-            class: StarClass::G,
+            class: Class::G,
             mass: 1.9885e+30_f64,
             radius: 6.96e+8_f64,
             temperature: 5_778,
@@ -548,7 +556,7 @@ mod tests {
     fn it_bh_properties() {
         // Black hole test
         for _i in 1..10_000 {
-            let (mass, radius, temperature) = Star::generate_properties(&StarClass::BlackHole);
+            let (mass, radius, temperature) = Star::generate_properties(&Class::BlackHole);
             assert!(mass >= 2_f64 * SUN_MASS && mass <= 20_f64 * SUN_MASS);
             assert_eq!(2_f64 * G * mass / C.powi(2), radius);
             assert_eq!(0, temperature);
@@ -557,7 +565,7 @@ mod tests {
                 id: 2,
                 galaxy_id: 5,
                 orb_radius: 26_000,
-                class: StarClass::NeutronStar,
+                class: Class::NeutronStar,
                 mass: mass,
                 radius: radius,
                 temperature: temperature,
@@ -571,7 +579,7 @@ mod tests {
     fn it_ns_properties() {
         // Neutron star test
         for _i in 1..10_000 {
-            let (mass, radius, temperature) = Star::generate_properties(&StarClass::NeutronStar);
+            let (mass, radius, temperature) = Star::generate_properties(&Class::NeutronStar);
             assert!(mass >= 1.1_f64 * SUN_MASS && mass <= 2.2_f64 * SUN_MASS);
             assert!(radius >= 11_000_f64 && radius <= 15_000_f64);
             assert!(radius > 2_f64 * G * mass / C.powi(2));
@@ -581,7 +589,7 @@ mod tests {
                 id: 2,
                 galaxy_id: 5,
                 orb_radius: 26_000,
-                class: StarClass::NeutronStar,
+                class: Class::NeutronStar,
                 mass: mass,
                 radius: radius,
                 temperature: temperature,
@@ -595,7 +603,7 @@ mod tests {
     fn it_qs_properties() {
         // Quark star test
         for _i in 1..10_000 {
-            let (mass, radius, temperature) = Star::generate_properties(&StarClass::QuarkStar);
+            let (mass, radius, temperature) = Star::generate_properties(&Class::QuarkStar);
             assert!(mass >= 2_f64 * SUN_MASS && mass <= 3_f64 * SUN_MASS);
             assert!(radius >= 11_000_f64 && radius <= 15_000_f64);
             assert!(radius > 2_f64 * G * mass / C.powi(2));
@@ -605,7 +613,7 @@ mod tests {
                 id: 2,
                 galaxy_id: 5,
                 orb_radius: 26_000,
-                class: StarClass::NeutronStar,
+                class: Class::NeutronStar,
                 mass: mass,
                 radius: radius,
                 temperature: temperature,
@@ -619,20 +627,22 @@ mod tests {
     fn it_wd_properties() {
         // White dwarf test
         for _i in 1..10_000 {
-            let (mass, radius, temperature) = Star::generate_properties(&StarClass::WhiteDwarf);
+            let (mass, radius, temperature) = Star::generate_properties(&Class::WhiteDwarf);
             assert!(mass >= 0.2_f64 * SUN_MASS && mass <= 1.3_f64 * SUN_MASS);
-            assert_eq!(0.78e+7_f64 *
-                       ((CH_LIMIT / mass).powf(2_f64 / 3_f64) -
-                        (mass / CH_LIMIT).powf(2_f64 / 3_f64))
-                           .sqrt(),
-                       radius);
+            assert_eq!(
+                0.78e+7_f64
+                    * ((CH_LIMIT / mass).powf(2_f64 / 3_f64)
+                        - (mass / CH_LIMIT).powf(2_f64 / 3_f64))
+                        .sqrt(),
+                radius
+            );
             assert!(temperature >= 4_000 && temperature <= 150_000);
 
             let st = Star {
                 id: 2,
                 galaxy_id: 5,
                 orb_radius: 26_000,
-                class: StarClass::NeutronStar,
+                class: Class::NeutronStar,
                 mass: mass,
                 radius: radius,
                 temperature: temperature,
@@ -646,7 +656,7 @@ mod tests {
     fn it_o_properties() {
         // O star test
         for _i in 1..10_000 {
-            let (mass, radius, temperature) = Star::generate_properties(&StarClass::O);
+            let (mass, radius, temperature) = Star::generate_properties(&Class::O);
             assert!(mass >= 15_f64 * SUN_MASS && mass <= 90_f64 * SUN_MASS);
             assert!(radius >= 6.6_f64 * SUN_RADIUS && radius <= 40_f64 * SUN_RADIUS);
             assert!(temperature >= 30_000 && temperature <= 52_000);
@@ -655,7 +665,7 @@ mod tests {
                 id: 2,
                 galaxy_id: 5,
                 orb_radius: 26_000,
-                class: StarClass::NeutronStar,
+                class: Class::NeutronStar,
                 mass: mass,
                 radius: radius,
                 temperature: temperature,
@@ -669,7 +679,7 @@ mod tests {
     fn it_b_properties() {
         // B star test
         for _i in 1..10_000 {
-            let (mass, radius, temperature) = Star::generate_properties(&StarClass::B);
+            let (mass, radius, temperature) = Star::generate_properties(&Class::B);
             assert!(mass >= 2.1_f64 * SUN_MASS && mass <= 16_f64 * SUN_MASS);
             assert!(radius >= 1.8_f64 * SUN_RADIUS && radius <= 6.6_f64 * SUN_RADIUS);
             assert!(temperature >= 10_000 && temperature <= 30_000);
@@ -678,7 +688,7 @@ mod tests {
                 id: 2,
                 galaxy_id: 5,
                 orb_radius: 26_000,
-                class: StarClass::NeutronStar,
+                class: Class::NeutronStar,
                 mass: mass,
                 radius: radius,
                 temperature: temperature,
@@ -692,7 +702,7 @@ mod tests {
     fn it_a_properties() {
         // A star test
         for _i in 1..10_000 {
-            let (mass, radius, temperature) = Star::generate_properties(&StarClass::A);
+            let (mass, radius, temperature) = Star::generate_properties(&Class::A);
             assert!(mass >= 1.4_f64 * SUN_MASS && mass <= 2.1_f64 * SUN_MASS);
             assert!(radius >= 1.4_f64 * SUN_RADIUS && radius <= 1.8_f64 * SUN_RADIUS);
             assert!(temperature >= 7_500 && temperature <= 10_000);
@@ -701,7 +711,7 @@ mod tests {
                 id: 2,
                 galaxy_id: 5,
                 orb_radius: 26_000,
-                class: StarClass::NeutronStar,
+                class: Class::NeutronStar,
                 mass: mass,
                 radius: radius,
                 temperature: temperature,
@@ -715,7 +725,7 @@ mod tests {
     fn it_f_properties() {
         // F star test
         for _i in 1..10_000 {
-            let (mass, radius, temperature) = Star::generate_properties(&StarClass::F);
+            let (mass, radius, temperature) = Star::generate_properties(&Class::F);
             assert!(mass >= 1.04_f64 * SUN_MASS && mass <= 1.4_f64 * SUN_MASS);
             assert!(radius >= 1.15_f64 * SUN_RADIUS && radius <= 1.4_f64 * SUN_RADIUS);
             assert!(temperature >= 6_000 && temperature <= 7_500);
@@ -724,7 +734,7 @@ mod tests {
                 id: 2,
                 galaxy_id: 5,
                 orb_radius: 26_000,
-                class: StarClass::NeutronStar,
+                class: Class::NeutronStar,
                 mass: mass,
                 radius: radius,
                 temperature: temperature,
@@ -738,7 +748,7 @@ mod tests {
     fn it_g_properties() {
         // G star test
         for _i in 1..10_000 {
-            let (mass, radius, temperature) = Star::generate_properties(&StarClass::G);
+            let (mass, radius, temperature) = Star::generate_properties(&Class::G);
             assert!(mass >= 0.8_f64 * SUN_MASS && mass <= 1.04_f64 * SUN_MASS);
             assert!(radius >= 0.96_f64 * SUN_RADIUS && radius <= 1.15_f64 * SUN_RADIUS);
             assert!(temperature >= 5_200 && temperature <= 6_000);
@@ -747,7 +757,7 @@ mod tests {
                 id: 2,
                 galaxy_id: 5,
                 orb_radius: 26_000,
-                class: StarClass::NeutronStar,
+                class: Class::NeutronStar,
                 mass: mass,
                 radius: radius,
                 temperature: temperature,
@@ -761,7 +771,7 @@ mod tests {
     fn it_k_properties() {
         // K star test
         for _i in 1..10_000 {
-            let (mass, radius, temperature) = Star::generate_properties(&StarClass::K);
+            let (mass, radius, temperature) = Star::generate_properties(&Class::K);
             assert!(mass >= 0.45_f64 * SUN_MASS && mass <= 0.8_f64 * SUN_MASS);
             assert!(radius >= 0.7_f64 * SUN_RADIUS && radius <= 0.96_f64 * SUN_RADIUS);
             assert!(temperature >= 3_700 && temperature <= 5_200);
@@ -770,7 +780,7 @@ mod tests {
                 id: 2,
                 galaxy_id: 5,
                 orb_radius: 26_000,
-                class: StarClass::NeutronStar,
+                class: Class::NeutronStar,
                 mass: mass,
                 radius: radius,
                 temperature: temperature,
@@ -784,7 +794,7 @@ mod tests {
     fn it_m_properties() {
         // M star test
         for _i in 1..10_000 {
-            let (mass, radius, temperature) = Star::generate_properties(&StarClass::M);
+            let (mass, radius, temperature) = Star::generate_properties(&Class::M);
             assert!(mass >= 0.1_f64 * SUN_MASS && mass <= 0.45_f64 * SUN_MASS);
             assert!(radius <= 0.7_f64 * SUN_RADIUS);
             assert!(temperature >= 2_400 && temperature <= 3_700);
@@ -793,7 +803,7 @@ mod tests {
                 id: 2,
                 galaxy_id: 5,
                 orb_radius: 26_000,
-                class: StarClass::NeutronStar,
+                class: Class::NeutronStar,
                 mass: mass,
                 radius: radius,
                 temperature: temperature,
@@ -810,7 +820,7 @@ mod tests {
             id: 2,
             galaxy_id: 5,
             orb_radius: 26_000,
-            class: StarClass::G,
+            class: Class::G,
             mass: 1.9885e+30_f64,
             radius: 6.96e+8_f64,
             temperature: 5_778,

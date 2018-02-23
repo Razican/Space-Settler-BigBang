@@ -6,6 +6,16 @@
 //! Then, the planets are created thinking on habitability, but following as far as possible all the
 //! physical laws.
 
+#![cfg_attr(feature = "cargo-clippy", deny(clippy))]
+#![forbid(anonymous_parameters)]
+//#![cfg_attr(feature = "cargo-clippy", warn(clippy_pedantic))]
+#![deny(variant_size_differences, unused_results, unused_qualifications, unused_import_braces,
+        unsafe_code, trivial_numeric_casts, trivial_casts, missing_docs,
+        missing_debug_implementations, missing_copy_implementations, unused_extern_crates)]
+#![cfg_attr(feature = "cargo-clippy",
+            allow(inconsistent_digit_grouping, large_digit_groups, unreadable_literal))]
+#![allow(illegal_floating_point_literal_pattern, unused_results)]
+
 extern crate rand;
 
 pub mod planet;
@@ -22,41 +32,40 @@ use std::sync::atomic::{Ordering, ATOMIC_USIZE_INIT};
 
 use rand::Rng;
 
-use star::{Star, StarClass};
-use planet::{Planet, PlanetType};
+use star::Star;
+use planet::Planet;
 use consts::*;
 use utils::*;
 
+#[cfg_attr(feature = "cargo-clippy", allow(print_stdout))]
 fn main() {
     let mut args = args();
     let arg = args.nth(1);
 
     if arg.is_some() {
         match arg.unwrap().as_ref() {
-            "-e" | "--earth" => {
-                loop {
-                    let new_star: Star = Star::new(0, 1);
-                    let num_bodies = new_star.generate_num_bodies();
+            "-e" | "--earth" => loop {
+                let new_star: Star = Star::new(0, 1);
+                let num_bodies = new_star.generate_num_bodies();
 
-                    if num_bodies > 1 {
-                        let (new_tb_m, new_tb_n) = new_star.generate_titius_bode(num_bodies);
-                        let new_planet: Planet = Planet::new(&new_star,
-                                                             new_tb_m,
-                                                             new_tb_n,
-                                                             rand::thread_rng()
-                                                                 .gen_range(1, num_bodies),
-                                                             0_f64);
+                if num_bodies > 1 {
+                    let (new_tb_m, new_tb_n) = new_star.generate_titius_bode(num_bodies);
+                    let new_planet: Planet = Planet::new(
+                        &new_star,
+                        new_tb_m,
+                        new_tb_n,
+                        rand::thread_rng().gen_range(1, num_bodies),
+                        0_f64,
+                    );
 
-                        if new_planet.is_roche_ok() && new_planet.is_earth_twin() {
-                            print_star(&new_star);
-                            print_planet(&new_planet);
-                            break;
-                        }
+                    if new_planet.is_roche_ok() && new_planet.is_earth_twin() {
+                        print_star(&new_star);
+                        print_planet(&new_planet);
+                        break;
                     }
                 }
-            }
-            "-g" |
-            "--create-galaxy" => {
+            },
+            "-g" | "--create-galaxy" => {
                 let galaxy_id_arg = args.next();
                 if galaxy_id_arg.is_some() {
                     let galaxy_id_parsed = galaxy_id_arg.unwrap().parse::<u32>();
@@ -66,7 +75,7 @@ fn main() {
                     } else {
                         let mut verbose = false;
                         let mut threads = 1;
-                        let mut star_count = rand::thread_rng().gen_range(950_0000, 1_050_0000);
+                        let mut star_count = rand::thread_rng().gen_range(9_500_000, 10_500_000);
                         let galaxy_id = galaxy_id_parsed.unwrap();
 
                         while let Some(argument) = args.next() {
@@ -75,11 +84,13 @@ fn main() {
                                     "-t" | "--threads" => {
                                         let threads_arg = args.next();
                                         if threads_arg.is_some() {
-                                            let threads_arg_parsed = threads_arg.unwrap()
-                                                .parse::<u8>();
+                                            let threads_arg_parsed =
+                                                threads_arg.unwrap().parse::<u8>();
                                             if threads_arg_parsed.is_err() {
-                                                println!("You must provide a correct number of \
-                                                          threads.");
+                                                println!(
+                                                    "You must provide a correct number of \
+                                                     threads."
+                                                );
                                                 exit(1);
                                             } else {
                                                 let input_threads = threads_arg_parsed.unwrap();
@@ -100,8 +111,10 @@ fn main() {
                                         if star_arg.is_some() {
                                             let star_arg_parsed = star_arg.unwrap().parse::<u64>();
                                             if star_arg_parsed.is_err() {
-                                                println!("You must provide a correct number of \
-                                                          stars.");
+                                                println!(
+                                                    "You must provide a correct number of \
+                                                     stars."
+                                                );
                                                 exit(1);
                                             } else {
                                                 let input_stars = star_arg_parsed.unwrap();
@@ -133,9 +146,11 @@ fn main() {
 
                         if verbose {
                             println!("Threads: {}", threads);
-                            println!("Stars per thread: {}-{}",
-                                     star_count / (threads as u64),
-                                     star_count % (threads as u64) + star_count / (threads as u64));
+                            println!(
+                                "Stars per thread: {}-{}",
+                                star_count / (threads as u64),
+                                star_count % (threads as u64) + star_count / (threads as u64)
+                            );
                             println!();
                         }
 
@@ -153,8 +168,8 @@ fn main() {
                                     let thread_star_count = if t < threads - 1 {
                                         star_count / (threads as u64)
                                     } else {
-                                        star_count % (threads as u64) +
-                                        star_count / (threads as u64)
+                                        star_count % (threads as u64)
+                                            + star_count / (threads as u64)
                                     };
                                     let mut stats = Stats::new();
 
@@ -173,11 +188,13 @@ fn main() {
                                             let mut last_distance = 0_f64;
 
                                             for g in 1..num_bodies {
-                                                let planet = Planet::new(&star,
-                                                                         tb_m,
-                                                                         tb_n,
-                                                                         g,
-                                                                         last_distance);
+                                                let planet = Planet::new(
+                                                    &star,
+                                                    tb_m,
+                                                    tb_n,
+                                                    g,
+                                                    last_distance,
+                                                );
                                                 if planet.is_roche_ok() {
                                                     stats.add_planet(&planet);
                                                     // TODO: create satellites
@@ -208,10 +225,12 @@ fn main() {
 
                         let created_stars_clone = created_stars.clone();
                         handles.push(thread::spawn(move || {
-                            while created_stars_clone.load(Ordering::SeqCst) <
-                                  (star_count as usize) {
-                                print!("Created {} stars and their planets.\r",
-                                       created_stars_clone.load(Ordering::SeqCst));
+                            while created_stars_clone.load(Ordering::SeqCst) < (star_count as usize)
+                            {
+                                print!(
+                                    "Created {} stars and their planets.\r",
+                                    created_stars_clone.load(Ordering::SeqCst)
+                                );
                                 thread::sleep(Duration::from_millis(50));
                             }
                             println!("It seems that all stars have been created. Finishing...");
@@ -221,8 +240,10 @@ fn main() {
                             thread.join().unwrap();
                         }
 
-                        println!("Finished the creation of the galaxy with {} stars.",
-                                 star_count);
+                        println!(
+                            "Finished the creation of the galaxy with {} stars.",
+                            star_count
+                        );
                         let final_shared_stats = shared_stats.lock().unwrap();
                         print_stats(&final_shared_stats);
                     }
@@ -242,23 +263,37 @@ fn main() {
 fn show_help(error: bool) {
     println!();
     println!("You must include the action you want. Currently you have these options:");
-    println!("-e, --earth\t\tGenerates lots of random stars and planets until it finds an earth \
-              twin.");
-    println!("-g, --create-galaxy\tGenerates a complete new galaxy and shows statistics (not yet \
-              functional).");
+    println!(
+        "-e, --earth\t\tGenerates lots of random stars and planets until it finds an earth \
+         twin."
+    );
+    println!(
+        "-g, --create-galaxy\tGenerates a complete new galaxy and shows statistics (not yet \
+         functional)."
+    );
     println!();
-    if error { exit(1) } else { exit(0) }
+    if error {
+        exit(1)
+    } else {
+        exit(0)
+    }
 }
 
 fn show_creation_help(error: bool) {
     println!();
     println!("You can specify the following parameters:");
     println!("-t, --threads\tThe number of threads to use during the creation. By default, 1.");
-    println!("-s, --stars\tThe number of stars to create. By default, randomly between 950,000 \
-              and 1,050,000.");
+    println!(
+        "-s, --stars\tThe number of stars to create. By default, randomly between 950,000 \
+         and 1,050,000."
+    );
     println!("-v, --verbose\tVerbose output.");
     println!();
-    if error { exit(1) } else { exit(0) }
+    if error {
+        exit(1)
+    } else {
+        exit(0)
+    }
 }
 
 fn print_star(star: &Star) {
@@ -266,16 +301,19 @@ fn print_star(star: &Star) {
 
     println!("\tID: {}", star.get_id());
     println!("\tGalaxy: {}", star.get_galaxy_id());
-    println!("\tOrbit: {} light years from the center of the galaxy",
-             star.get_orbit());
+    println!(
+        "\tOrbit: {} light years from the center of the galaxy",
+        star.get_orbit()
+    );
     println!("\tClass: {:?}", star.get_class());
-    println!("\tMass: {:.2} M☉", star.get_mass() / consts::SUN_MASS);
-    println!("\tRadius: {:.2} R☉",
-             star.get_radius() / consts::SUN_RADIUS);
+    println!("\tMass: {:.2} M☉", star.get_mass() / SUN_MASS);
+    println!("\tRadius: {:.2} R☉", star.get_radius() / SUN_RADIUS);
     println!("\tDensity: {:.2} kg/m³", star.get_density());
     println!("\tTemperature: {} K", star.get_temperature());
-    println!("\tLuminosity: {:.4} suns",
-             star.get_luminosity() / consts::SUN_LUMINOSITY);
+    println!(
+        "\tLuminosity: {:.4} suns",
+        star.get_luminosity() / SUN_LUMINOSITY
+    );
     println!();
 }
 
@@ -283,69 +321,111 @@ fn print_planet(planet: &Planet) {
     println!("\nCreated a new Planet:");
 
     println!("\tStar ID: {}", planet.get_orbit().get_star().get_id());
-    println!("\tPosition in solar system: {}",
-             planet.get_orbit().get_position());
+    println!(
+        "\tPosition in solar system: {}",
+        planet.get_orbit().get_position()
+    );
     println!("\tPlanet type: {:?}", planet.get_type());
     println!("\tBond albedo: {:.2}%", planet.get_bond_albedo() * 100_f64);
-    println!("\tGeometric albedo: {:.2}%",
-             planet.get_geometric_albedo() * 100_f64);
-    if planet.get_mass() > 50_f64 * consts::EARTH_MASS {
-        println!("\tMass: {:.3} Mj", planet.get_mass() / consts::JUPITER_MASS);
-        println!("\tRadius: {:.3} Rj",
-                 planet.get_radius() / consts::JUPITER_RADIUS);
+    println!(
+        "\tGeometric albedo: {:.2}%",
+        planet.get_geometric_albedo() * 100_f64
+    );
+    if planet.get_mass() > 50_f64 * EARTH_MASS {
+        println!("\tMass: {:.3} Mj", planet.get_mass() / JUPITER_MASS);
+        println!("\tRadius: {:.3} Rj", planet.get_radius() / JUPITER_RADIUS);
     } else {
-        println!("\tMass: {:.3} M⊕", planet.get_mass() / consts::EARTH_MASS);
-        println!("\tRadius: {:.3} R⊕",
-                 planet.get_radius() / consts::EARTH_RADIUS);
+        println!("\tMass: {:.3} M⊕", planet.get_mass() / EARTH_MASS);
+        println!("\tRadius: {:.3} R⊕", planet.get_radius() / EARTH_RADIUS);
     }
     println!("\tDensity: {} kg/m³", planet.get_density());
-    println!("\tSurface gravity: {:.2}m/s² ({:.2}g)",
-             planet.get_surface_gravity(),
-             planet.get_surface_gravity() / EARTH_GRAVITY);
-    if planet.get_type() == &PlanetType::Rocky {
-        println!("\tMinimum temperature: {:.2}°C",
-                 kelvin_to_celsius(planet.get_min_temp()));
-        println!("\tAverage temperature: {:.2}°C",
-                 kelvin_to_celsius(planet.get_avg_temp()));
-        println!("\tMaximum temperature: {:.2}°C",
-                 kelvin_to_celsius(planet.get_max_temp()));
+    println!(
+        "\tSurface gravity: {:.2}m/s² ({:.2}g)",
+        planet.get_surface_gravity(),
+        planet.get_surface_gravity() / EARTH_GRAVITY
+    );
+    if planet.get_type() == &planet::Type::Rocky {
+        println!(
+            "\tMinimum temperature: {:.2}°C",
+            kelvin_to_celsius(planet.get_min_temp())
+        );
+        println!(
+            "\tAverage temperature: {:.2}°C",
+            kelvin_to_celsius(planet.get_avg_temp())
+        );
+        println!(
+            "\tMaximum temperature: {:.2}°C",
+            kelvin_to_celsius(planet.get_max_temp())
+        );
     }
     println!("\tOrbit:");
-    println!("\t\tSemimajor axis: {:.3} AU",
-             planet.get_orbit().get_sma() / AU);
+    println!(
+        "\t\tSemimajor axis: {:.3} AU",
+        planet.get_orbit().get_sma() / AU
+    );
     println!("\t\tEccentricity: {:.4}", planet.get_orbit().get_ecc());
-    println!("\t\tApoapsis: {:.3} AU",
-             planet.get_orbit().get_apoapsis() / AU);
-    println!("\t\tPeriapsis: {:.3} AU",
-             planet.get_orbit().get_periapsis() / AU);
-    println!("\t\tOrbital period: {:.3} days",
-             planet.get_orbit().get_orb_period() / planet.get_orbit().get_day());
-    println!("\t\tDay length: {:.3} hours",
-             planet.get_orbit().get_day() / 3_600_f64);
-    println!("\t\tAxial tilt: {:.3}°",
-             rad_to_deg(planet.get_orbit().get_ax_tilt()));
+    println!(
+        "\t\tApoapsis: {:.3} AU",
+        planet.get_orbit().get_apoapsis() / AU
+    );
+    println!(
+        "\t\tPeriapsis: {:.3} AU",
+        planet.get_orbit().get_periapsis() / AU
+    );
+    println!(
+        "\t\tOrbital period: {:.3} days",
+        planet.get_orbit().get_orb_period() / planet.get_orbit().get_day()
+    );
+    println!(
+        "\t\tDay length: {:.3} hours",
+        planet.get_orbit().get_day() / 3_600_f64
+    );
+    println!(
+        "\t\tAxial tilt: {:.3}°",
+        rad_to_deg(planet.get_orbit().get_ax_tilt())
+    );
     if planet.get_atmosphere().is_some() {
         println!("\tAtmosphere:");
-        println!("\t\tPressure: {:.2} Pa",
-                 planet.get_atmosphere().unwrap().get_pressure());
-        println!("\t\tCarbon dioxide (CO₂): {:.2}%",
-                 planet.get_atmosphere().unwrap().get_co2() * 100_f64);
-        println!("\t\tCarbon monoxide (CO): {:.2}%",
-                 planet.get_atmosphere().unwrap().get_co() * 100_f64);
-        println!("\t\tNitrogen (N₂): {:.2}%",
-                 planet.get_atmosphere().unwrap().get_n2() * 100_f64);
-        println!("\t\tOxygen (O₂): {:.2}%",
-                 planet.get_atmosphere().unwrap().get_o2() * 100_f64);
-        println!("\t\tArgon (Ar): {:.2}%",
-                 planet.get_atmosphere().unwrap().get_ar() * 100_f64);
-        println!("\t\tSulfur dioxide (SO₂): {:.2}%",
-                 planet.get_atmosphere().unwrap().get_so2() * 100_f64);
-        println!("\t\tNeon (Ne): {:.2}%",
-                 planet.get_atmosphere().unwrap().get_ne() * 100_f64);
-        println!("\t\tMethane (CH₄): {:.2}%",
-                 planet.get_atmosphere().unwrap().get_ch4() * 100_f64);
-        println!("\t\tHelium (He): {:.2}%",
-                 planet.get_atmosphere().unwrap().get_he() * 100_f64);
+        println!(
+            "\t\tPressure: {:.2} Pa",
+            planet.get_atmosphere().unwrap().get_pressure()
+        );
+        println!(
+            "\t\tCarbon dioxide (CO₂): {:.2}%",
+            planet.get_atmosphere().unwrap().get_co2() * 100_f64
+        );
+        println!(
+            "\t\tCarbon monoxide (CO): {:.2}%",
+            planet.get_atmosphere().unwrap().get_co() * 100_f64
+        );
+        println!(
+            "\t\tNitrogen (N₂): {:.2}%",
+            planet.get_atmosphere().unwrap().get_n2() * 100_f64
+        );
+        println!(
+            "\t\tOxygen (O₂): {:.2}%",
+            planet.get_atmosphere().unwrap().get_o2() * 100_f64
+        );
+        println!(
+            "\t\tArgon (Ar): {:.2}%",
+            planet.get_atmosphere().unwrap().get_ar() * 100_f64
+        );
+        println!(
+            "\t\tSulfur dioxide (SO₂): {:.2}%",
+            planet.get_atmosphere().unwrap().get_so2() * 100_f64
+        );
+        println!(
+            "\t\tNeon (Ne): {:.2}%",
+            planet.get_atmosphere().unwrap().get_ne() * 100_f64
+        );
+        println!(
+            "\t\tMethane (CH₄): {:.2}%",
+            planet.get_atmosphere().unwrap().get_ch4() * 100_f64
+        );
+        println!(
+            "\t\tHelium (He): {:.2}%",
+            planet.get_atmosphere().unwrap().get_he() * 100_f64
+        );
     }
     println!();
 }
@@ -353,90 +433,136 @@ fn print_planet(planet: &Planet) {
 fn print_stats(st: &Stats) {
     println!("Statistics:");
     println!("Total stars: {}", st.get_total_stars());
-    println!("\tBlack holes: {} ({:.5}%)",
-             st.get_black_holes(),
-             st.get_black_hole_percent() * 100_f64);
-    println!("\tNeutron stars: {} ({:.5}%)",
-             st.get_neutron_stars(),
-             st.get_neutron_star_percent() * 100_f64);
-    println!("\tQuark stars: {} ({:.5}%)",
-             st.get_quark_stars(),
-             st.get_quark_star_percent() * 100_f64);
-    println!("\tWhite dwarfs: {} ({:.5}%)",
-             st.get_white_dwarfs(),
-             st.get_white_dwarf_percent() * 100_f64);
+    println!(
+        "\tBlack holes: {} ({:.5}%)",
+        st.get_black_holes(),
+        st.get_black_hole_percent() * 100_f64
+    );
+    println!(
+        "\tNeutron stars: {} ({:.5}%)",
+        st.get_neutron_stars(),
+        st.get_neutron_star_percent() * 100_f64
+    );
+    println!(
+        "\tQuark stars: {} ({:.5}%)",
+        st.get_quark_stars(),
+        st.get_quark_star_percent() * 100_f64
+    );
+    println!(
+        "\tWhite dwarfs: {} ({:.5}%)",
+        st.get_white_dwarfs(),
+        st.get_white_dwarf_percent() * 100_f64
+    );
     println!();
-    println!("\tO type stars: {} ({:.5}%)",
-             st.get_o_stars(),
-             st.get_o_star_percent() * 100_f64);
-    println!("\tB type stars: {} ({:.5}%)",
-             st.get_b_stars(),
-             st.get_b_star_percent() * 100_f64);
-    println!("\tA type stars: {} ({:.5}%)",
-             st.get_a_stars(),
-             st.get_a_star_percent() * 100_f64);
-    println!("\tF type stars: {} ({:.5}%)",
-             st.get_f_stars(),
-             st.get_f_star_percent() * 100_f64);
-    println!("\tG type stars: {} ({:.5}%)",
-             st.get_g_stars(),
-             st.get_g_star_percent() * 100_f64);
-    println!("\tK type stars: {} ({:.5}%)",
-             st.get_k_stars(),
-             st.get_k_star_percent() * 100_f64);
-    println!("\tM type stars: {} ({:.5}%)",
-             st.get_m_stars(),
-             st.get_m_star_percent() * 100_f64);
+    println!(
+        "\tO type stars: {} ({:.5}%)",
+        st.get_o_stars(),
+        st.get_o_star_percent() * 100_f64
+    );
+    println!(
+        "\tB type stars: {} ({:.5}%)",
+        st.get_b_stars(),
+        st.get_b_star_percent() * 100_f64
+    );
+    println!(
+        "\tA type stars: {} ({:.5}%)",
+        st.get_a_stars(),
+        st.get_a_star_percent() * 100_f64
+    );
+    println!(
+        "\tF type stars: {} ({:.5}%)",
+        st.get_f_stars(),
+        st.get_f_star_percent() * 100_f64
+    );
+    println!(
+        "\tG type stars: {} ({:.5}%)",
+        st.get_g_stars(),
+        st.get_g_star_percent() * 100_f64
+    );
+    println!(
+        "\tK type stars: {} ({:.5}%)",
+        st.get_k_stars(),
+        st.get_k_star_percent() * 100_f64
+    );
+    println!(
+        "\tM type stars: {} ({:.5}%)",
+        st.get_m_stars(),
+        st.get_m_star_percent() * 100_f64
+    );
 
     println!("Total planets: {}", st.get_total_planets());
-    println!("\tRocky planets: {} ({:.2}%)",
-             st.get_rocky_planets(),
-             st.get_rocky_planet_percent() * 100_f64);
+    println!(
+        "\tRocky planets: {} ({:.2}%)",
+        st.get_rocky_planets(),
+        st.get_rocky_planet_percent() * 100_f64
+    );
     println!("\t\tSuper earths: {}", st.get_super_earths());
     println!("\t\tSmall planets: {}", st.get_small_planets());
     println!("\t\tHabitable planets: {}", st.get_habitable_planets());
     println!("\t\tEarth twins: {}", st.get_earth_twins());
     println!("\t\tOcean planets: {}", st.get_ocean_planets());
-    println!("\tGaseous planets: {} ({:.2}%)",
-             st.get_gaseous_planets(),
-             st.get_gaseous_planet_percent() * 100_f64);
+    println!(
+        "\tGaseous planets: {} ({:.2}%)",
+        st.get_gaseous_planets(),
+        st.get_gaseous_planet_percent() * 100_f64
+    );
     println!("\t\tHot jupiters: {}", st.get_hot_jupiters());
-    println!("\tMini-neptunes (some gaseous, some rocky, some in between): {}",
-             st.get_mini_neptunes());
+    println!(
+        "\tMini-neptunes (some gaseous, some rocky, some in between): {}",
+        st.get_mini_neptunes()
+    );
 
     println!("Records:");
-    println!("\tMinimum surface gravity: {:.3} m/s² ({:.2}g)",
-             st.get_min_gravity(),
-             st.get_min_gravity() / EARTH_GRAVITY);
-    println!("\tMaximum surface gravity: {:.3} m/s² ({:.2}g)",
-             st.get_max_gravity(),
-             st.get_max_gravity() / EARTH_GRAVITY);
-    println!("\tMinimum temperature: {:.2}K ({:.2}°C)",
-             st.get_min_temp(),
-             kelvin_to_celsius(st.get_min_temp()));
-    println!("\tMaximum temperature: {:.2}K ({:.2}°C)",
-             st.get_max_temp(),
-             kelvin_to_celsius(st.get_max_temp()));
-    println!("\tMaximum surface atmospheric pressure: {:.2} Pa ({:.2} Atm)",
-             st.get_max_pressure(),
-             st.get_max_pressure() / EARTH_ATM_PRESSURE);
+    println!(
+        "\tMinimum surface gravity: {:.3} m/s² ({:.2}g)",
+        st.get_min_gravity(),
+        st.get_min_gravity() / EARTH_GRAVITY
+    );
+    println!(
+        "\tMaximum surface gravity: {:.3} m/s² ({:.2}g)",
+        st.get_max_gravity(),
+        st.get_max_gravity() / EARTH_GRAVITY
+    );
+    println!(
+        "\tMinimum temperature: {:.2}K ({:.2}°C)",
+        st.get_min_temp(),
+        kelvin_to_celsius(st.get_min_temp())
+    );
+    println!(
+        "\tMaximum temperature: {:.2}K ({:.2}°C)",
+        st.get_max_temp(),
+        kelvin_to_celsius(st.get_max_temp())
+    );
+    println!(
+        "\tMaximum surface atmospheric pressure: {:.2} Pa ({:.2} Atm)",
+        st.get_max_pressure(),
+        st.get_max_pressure() / EARTH_ATM_PRESSURE
+    );
     println!();
 
     println!("\tMinimum sMa: {:.4} AU", st.get_min_sma() / AU);
     println!("\tMaximum sMa: {:.2} AU", st.get_max_sma() / AU);
 
-    println!("\tShortest year: {:.2} hours",
-             st.get_min_orb_period() / 3600_f64);
-    println!("\tLongest year: {:.3} years",
-             st.get_max_orb_period() / (3600_f64 * 24_f64 * 365.256363004));
+    println!(
+        "\tShortest year: {:.2} hours",
+        st.get_min_orb_period() / 3600_f64
+    );
+    println!(
+        "\tLongest year: {:.3} years",
+        st.get_max_orb_period() / (3600_f64 * 24_f64 * 365.256363004)
+    );
 
     println!("\tShortest day: {:.2} hours", st.get_min_day() / 3600_f64);
-    println!("\tLongest day: {:.2} years",
-             st.get_max_day() / (3600_f64 * 24_f64 * 365.256363004));
+    println!(
+        "\tLongest day: {:.2} years",
+        st.get_max_day() / (3600_f64 * 24_f64 * 365.256363004)
+    );
 
     println!();
 }
 
+/// Statistics structure.
+#[derive(Debug, Clone, Copy)]
 pub struct Stats {
     // Stars
     black_holes: u32,
@@ -475,6 +601,7 @@ pub struct Stats {
 }
 
 impl Stats {
+    /// Creates a new, empty `Stats` object.
     pub fn new() -> Stats {
         Stats {
             black_holes: 0,
@@ -511,22 +638,24 @@ impl Stats {
         }
     }
 
+    /// Adds a star to the stats.
     pub fn add_star(&mut self, st: &Star) {
         match *st.get_class() {
-            StarClass::BlackHole => self.black_holes += 1,
-            StarClass::NeutronStar => self.neutron_stars += 1,
-            StarClass::QuarkStar => self.quark_stars += 1,
-            StarClass::WhiteDwarf => self.white_dwarfs += 1,
-            StarClass::O => self.o_stars += 1,
-            StarClass::B => self.b_stars += 1,
-            StarClass::A => self.a_stars += 1,
-            StarClass::F => self.f_stars += 1,
-            StarClass::G => self.g_stars += 1,
-            StarClass::K => self.k_stars += 1,
-            StarClass::M => self.m_stars += 1,
+            star::Class::BlackHole => self.black_holes += 1,
+            star::Class::NeutronStar => self.neutron_stars += 1,
+            star::Class::QuarkStar => self.quark_stars += 1,
+            star::Class::WhiteDwarf => self.white_dwarfs += 1,
+            star::Class::O => self.o_stars += 1,
+            star::Class::B => self.b_stars += 1,
+            star::Class::A => self.a_stars += 1,
+            star::Class::F => self.f_stars += 1,
+            star::Class::G => self.g_stars += 1,
+            star::Class::K => self.k_stars += 1,
+            star::Class::M => self.m_stars += 1,
         }
     }
 
+    /// Adds a planet to the stats.
     pub fn add_planet(&mut self, planet: &Planet) {
         if self.min_sma > planet.get_orbit().get_sma() || self.min_sma == 0_f64 {
             self.min_sma = planet.get_orbit().get_sma();
@@ -534,8 +663,8 @@ impl Stats {
         if self.max_sma < planet.get_orbit().get_sma() {
             self.max_sma = planet.get_orbit().get_sma();
         }
-        if self.min_orb_period > planet.get_orbit().get_orb_period() ||
-           self.min_orb_period == 0_f64 {
+        if self.min_orb_period > planet.get_orbit().get_orb_period() || self.min_orb_period == 0_f64
+        {
             self.min_orb_period = planet.get_orbit().get_orb_period();
         }
         if self.max_orb_period < planet.get_orbit().get_orb_period() {
@@ -547,15 +676,16 @@ impl Stats {
         if self.max_day < planet.get_orbit().get_day() {
             self.max_day = planet.get_orbit().get_day();
         }
-        if planet.get_radius() > 2_f64 * EARTH_RADIUS &&
-           planet.get_radius() < 4_f64 * EARTH_RADIUS {
+        if planet.get_radius() > 2_f64 * EARTH_RADIUS && planet.get_radius() < 4_f64 * EARTH_RADIUS
+        {
             self.mini_neptunes += 1;
         }
         match *planet.get_type() {
-            PlanetType::Rocky => {
+            planet::Type::Rocky => {
                 self.rocky += 1;
-                if planet.get_radius() > 0.8 * EARTH_RADIUS &&
-                   planet.get_radius() < 1.25 * EARTH_RADIUS {
+                if planet.get_radius() > 0.8 * EARTH_RADIUS
+                    && planet.get_radius() < 1.25 * EARTH_RADIUS
+                {
                     self.super_earths += 1;
                 } else if planet.get_radius() < 0.8 * EARTH_RADIUS {
                     self.small_planets += 1;
@@ -591,7 +721,7 @@ impl Stats {
                     self.ocean_planets += 1;
                 }
             }
-            PlanetType::Gaseous => {
+            planet::Type::Gaseous => {
                 self.gaseous += 1;
                 if planet.get_eff_temp() > 700_f64 {
                     self.hot_jupiters += 1;
@@ -600,6 +730,7 @@ impl Stats {
         }
     }
 
+    /// Adds the given stats to the current total stats.
     pub fn add_stats(&mut self, new_stats: &Stats) {
         self.black_holes += new_stats.get_black_holes();
         self.neutron_stars += new_stats.get_neutron_stars();
@@ -661,192 +792,238 @@ impl Stats {
 
     // Star getters
 
+    /// Gets the total stars in the stats.
     pub fn get_total_stars(&self) -> u32 {
-        self.black_holes + self.neutron_stars + self.quark_stars + self.white_dwarfs +
-        self.o_stars + self.b_stars + self.a_stars + self.f_stars + self.g_stars +
-        self.k_stars + self.m_stars
+        self.black_holes + self.neutron_stars + self.quark_stars + self.white_dwarfs + self.o_stars
+            + self.b_stars + self.a_stars + self.f_stars + self.g_stars + self.k_stars
+            + self.m_stars
     }
 
+    /// Gets the black hole percentage.
     pub fn get_black_hole_percent(&self) -> f64 {
         (self.black_holes as f64) / (self.get_total_stars() as f64)
     }
 
+    /// Gets the number of black holes.
     pub fn get_black_holes(&self) -> u32 {
         self.black_holes
     }
 
+    /// Gets the percentage of neutron stars.
     pub fn get_neutron_star_percent(&self) -> f64 {
         (self.neutron_stars as f64) / (self.get_total_stars() as f64)
     }
 
+    /// Gets the number of neutron stars.
     pub fn get_neutron_stars(&self) -> u32 {
         self.neutron_stars
     }
 
+    /// Gets the percentage of quark stars.
     pub fn get_quark_star_percent(&self) -> f64 {
         (self.quark_stars as f64) / (self.get_total_stars() as f64)
     }
 
+    /// Gets the number of quark stars.
     pub fn get_quark_stars(&self) -> u32 {
         self.quark_stars
     }
 
+    /// Gets the percentage of white dwarfs.
     pub fn get_white_dwarf_percent(&self) -> f64 {
         (self.white_dwarfs as f64) / (self.get_total_stars() as f64)
     }
 
+    /// Gets the number of white dwarfs.
     pub fn get_white_dwarfs(&self) -> u32 {
         self.white_dwarfs
     }
 
+    /// Gets the O type star percentage.
     pub fn get_o_star_percent(&self) -> f64 {
         (self.o_stars as f64) / (self.get_total_stars() as f64)
     }
 
+    /// Gets the number of O type stars.
     pub fn get_o_stars(&self) -> u32 {
         self.o_stars
     }
 
+    /// Gets the percentage of B type stars.
     pub fn get_b_star_percent(&self) -> f64 {
         (self.b_stars as f64) / (self.get_total_stars() as f64)
     }
 
+    /// Gets the number of B type stars.
     pub fn get_b_stars(&self) -> u32 {
         self.b_stars
     }
 
+    /// Gets the percentage of A type stars.
     pub fn get_a_star_percent(&self) -> f64 {
         (self.a_stars as f64) / (self.get_total_stars() as f64)
     }
 
+    /// Gets the number of A type stars.
     pub fn get_a_stars(&self) -> u32 {
         self.a_stars
     }
 
+    /// Gets the percentage of F type stars.
     pub fn get_f_star_percent(&self) -> f64 {
         (self.f_stars as f64) / (self.get_total_stars() as f64)
     }
 
+    /// Gets the number of F type stars.
     pub fn get_f_stars(&self) -> u32 {
         self.f_stars
     }
 
+    /// Gets the percentage of G type stars.
     pub fn get_g_star_percent(&self) -> f64 {
         (self.g_stars as f64) / (self.get_total_stars() as f64)
     }
 
+    /// Gets the number of G type stars.
     pub fn get_g_stars(&self) -> u32 {
         self.g_stars
     }
 
+    /// Gets the percentage of K type stars.
     pub fn get_k_star_percent(&self) -> f64 {
         (self.k_stars as f64) / (self.get_total_stars() as f64)
     }
 
+    /// Gets the number of K type stars.
     pub fn get_k_stars(&self) -> u32 {
         self.k_stars
     }
 
+    /// Gets the percentage of M type stars.
     pub fn get_m_star_percent(&self) -> f64 {
         (self.m_stars as f64) / (self.get_total_stars() as f64)
     }
 
+    /// Gets the number of M type stars.
     pub fn get_m_stars(&self) -> u32 {
         self.m_stars
     }
 
     // Planet getters
 
+    /// Gets the total number of planets.
     pub fn get_total_planets(&self) -> u32 {
         self.gaseous + self.rocky
     }
 
+    /// Gets the gaseous planet percentage.
     pub fn get_gaseous_planet_percent(&self) -> f64 {
         (self.gaseous as f64) / (self.get_total_planets() as f64)
     }
 
+    /// Gets the number of gaseous planets.
     pub fn get_gaseous_planets(&self) -> u32 {
         self.gaseous
     }
 
+    /// Gets the number of hot Jupiters.
     pub fn get_hot_jupiters(&self) -> u32 {
         self.hot_jupiters
     }
 
+    /// Gets the number of mini-Neptunes.
     pub fn get_mini_neptunes(&self) -> u32 {
         self.mini_neptunes
     }
 
+    /// Gets the rocky planet percentage.
     pub fn get_rocky_planet_percent(&self) -> f64 {
         (self.rocky as f64) / (self.get_total_planets() as f64)
     }
 
+    /// Gets the number of rocky planets.
     pub fn get_rocky_planets(&self) -> u32 {
         self.rocky
     }
 
+    /// Gets the number of super Earths.
     pub fn get_super_earths(&self) -> u32 {
         self.super_earths
     }
 
+    /// Gets the number of ocean planets.
     pub fn get_ocean_planets(&self) -> u32 {
         self.ocean_planets
     }
 
+    /// Gets the number of Earth twins.
     pub fn get_earth_twins(&self) -> u32 {
         self.earth_twins
     }
 
+    /// Gets the number of habitable planets.
     pub fn get_habitable_planets(&self) -> u32 {
         self.habitable
     }
 
+    /// Gets the number of small planets.
     pub fn get_small_planets(&self) -> u32 {
         self.small_planets
     }
 
     // Record getters
 
+    /// Gets the minimum surface gravity for a planet.
     pub fn get_min_gravity(&self) -> f64 {
         self.min_gravity
     }
 
+    /// Gets the maximum surface gravity for a planet.
     pub fn get_max_gravity(&self) -> f64 {
         self.max_gravity
     }
 
+    /// Gets the minimum surface temperature for a planet.
     pub fn get_min_temp(&self) -> f64 {
         self.min_temp
     }
 
+    /// Gets the maximum surface temperature for a planet.
     pub fn get_max_temp(&self) -> f64 {
         self.max_temp
     }
 
+    /// Gets the minimum semimajor axis for a planet.
     pub fn get_min_sma(&self) -> f64 {
         self.min_sma
     }
 
+    /// Gets the maximum semimajor axis for a planet.
     pub fn get_max_sma(&self) -> f64 {
         self.max_sma
     }
 
+    /// Gets the mimimum orbit period for a planet.
     pub fn get_min_orb_period(&self) -> f64 {
         self.min_orb_period
     }
 
+    /// Gets the maximum orbit period for a planet.
     pub fn get_max_orb_period(&self) -> f64 {
         self.max_orb_period
     }
 
+    /// Gets the shortest day for a planet.
     pub fn get_min_day(&self) -> f64 {
         self.min_day
     }
 
+    /// Gets the longest day for a planet.
     pub fn get_max_day(&self) -> f64 {
         self.max_day
     }
 
+    /// Gets the maximum surface pressue for a planet.
     pub fn get_max_pressure(&self) -> f64 {
         self.max_pressure
     }
