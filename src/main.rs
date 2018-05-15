@@ -16,284 +16,218 @@
             allow(inconsistent_digit_grouping, large_digit_groups, unreadable_literal))]
 #![allow(illegal_floating_point_literal_pattern, unused_results)]
 
+#[macro_use]
+extern crate failure;
+#[macro_use]
+extern crate clap;
+extern crate colored;
+extern crate num_cpus;
 extern crate rand;
 
-pub mod planet;
-pub mod star;
-pub mod consts;
-pub mod utils;
+mod cli;
+mod consts;
+mod error;
+mod planet;
+mod star;
+mod utils;
 
-use std::env::args;
-use std::process::exit;
-use std::time::Duration;
-use std::thread;
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::{Ordering, ATOMIC_USIZE_INIT};
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
+use std::{usize, u64};
 
+use failure::Error;
 use rand::Rng;
 
-use star::Star;
-use planet::Planet;
 use consts::*;
+use planet::Planet;
+use star::Star;
 use utils::*;
 
-#[cfg_attr(feature = "cargo-clippy", allow(print_stdout))]
+/// Program entry point.
+///
+/// This function will just call the `run()` function and report any fatal error that comes out
+/// of it. It will also exit with a non-zero exit code if things go wrong.
 fn main() {
-    let mut args = args();
-    let arg = args.nth(1);
+    // Call the `run()` function and check for errors.
+    if let Err(e) = run() {
+        eprintln!("{} {}", "Error:".bold().red(), e);
 
-    if arg.is_some() {
-        match arg.unwrap().as_ref() {
-            "-e" | "--earth" => loop {
-                let new_star: Star = Star::new(0, 1);
-                let num_bodies = new_star.generate_num_bodies();
-
-                if num_bodies > 1 {
-                    let (new_tb_m, new_tb_n) = new_star.generate_titius_bode(num_bodies);
-                    let new_planet: Planet = Planet::new(
-                        &new_star,
-                        new_tb_m,
-                        new_tb_n,
-                        rand::thread_rng().gen_range(1, num_bodies),
-                        0_f64,
-                    );
-
-                    if new_planet.is_roche_ok() && new_planet.is_earth_twin() {
-                        print_star(&new_star);
-                        print_planet(&new_planet);
-                        break;
-                    }
-                }
-            },
-            "-g" | "--create-galaxy" => {
-                let galaxy_id_arg = args.next();
-                if galaxy_id_arg.is_some() {
-                    let galaxy_id_parsed = galaxy_id_arg.unwrap().parse::<u32>();
-                    if galaxy_id_parsed.is_err() {
-                        println!("Please, provide a valid galaxy ID.");
-                        exit(1);
-                    } else {
-                        let mut verbose = false;
-                        let mut threads = 1;
-                        let mut star_count = rand::thread_rng().gen_range(9_500_000, 10_500_000);
-                        let galaxy_id = galaxy_id_parsed.unwrap();
-
-                        while let Some(argument) = args.next() {
-                            if argument.starts_with("-") {
-                                match argument.as_ref() {
-                                    "-t" | "--threads" => {
-                                        let threads_arg = args.next();
-                                        if threads_arg.is_some() {
-                                            let threads_arg_parsed =
-                                                threads_arg.unwrap().parse::<u8>();
-                                            if threads_arg_parsed.is_err() {
-                                                println!(
-                                                    "You must provide a correct number of \
-                                                     threads."
-                                                );
-                                                exit(1);
-                                            } else {
-                                                let input_threads = threads_arg_parsed.unwrap();
-                                                if input_threads > 0 {
-                                                    threads = input_threads;
-                                                } else {
-                                                    println!("You must use at least 1 thread.");
-                                                    exit(1);
-                                                }
-                                            }
-                                        } else {
-                                            println!("You must specify the number of threads.");
-                                            exit(1);
-                                        }
-                                    }
-                                    "-s" | "--stars" => {
-                                        let star_arg = args.next();
-                                        if star_arg.is_some() {
-                                            let star_arg_parsed = star_arg.unwrap().parse::<u64>();
-                                            if star_arg_parsed.is_err() {
-                                                println!(
-                                                    "You must provide a correct number of \
-                                                     stars."
-                                                );
-                                                exit(1);
-                                            } else {
-                                                let input_stars = star_arg_parsed.unwrap();
-                                                if input_stars > 0 {
-                                                    star_count = input_stars;
-                                                } else {
-                                                    println!("You must create at least 1 star.");
-                                                    exit(1);
-                                                }
-                                            }
-                                        } else {
-                                            println!("You must specify the number of stars.");
-                                            exit(1);
-                                        }
-                                    }
-                                    "-v" | "--verbose" => verbose = true,
-                                    "-h" | "--help" => show_creation_help(false),
-                                    _ => show_creation_help(true),
-                                }
-                            } else {
-                                println!("Argument error.");
-                                exit(1);
-                            }
-                        }
-
-                        // Galaxy creation
-                        println!("Creating a galaxy of {} stars...", star_count);
-                        println!();
-
-                        if verbose {
-                            println!("Threads: {}", threads);
-                            println!(
-                                "Stars per thread: {}-{}",
-                                star_count / (threads as u64),
-                                star_count % (threads as u64) + star_count / (threads as u64)
-                            );
-                            println!();
-                        }
-
-                        let shared_stats = Arc::new(Mutex::new(Stats::new()));
-                        let created_stars = Arc::new(ATOMIC_USIZE_INIT);
-
-                        let mut handles: Vec<_> = (0..threads)
-                            .map(|t| {
-                                if verbose {
-                                    println!("Starting thread {}", t + 1);
-                                }
-                                let created_stars_clone = created_stars.clone();
-                                let shared_stats_clone = shared_stats.clone();
-                                thread::spawn(move || {
-                                    let thread_star_count = if t < threads - 1 {
-                                        star_count / (threads as u64)
-                                    } else {
-                                        star_count % (threads as u64)
-                                            + star_count / (threads as u64)
-                                    };
-                                    let mut stats = Stats::new();
-
-                                    for i in 0..thread_star_count {
-                                        let star = Star::new(i, galaxy_id);
-                                        stats.add_star(&star);
-                                        if i % 5_000 == 0 {
-                                            created_stars_clone.fetch_add(10_000, Ordering::SeqCst);
-                                        }
-
-                                        let num_bodies = star.generate_num_bodies();
-
-                                        if num_bodies > 0 {
-                                            let (tb_m, tb_n) =
-                                                star.generate_titius_bode(num_bodies);
-                                            let mut last_distance = 0_f64;
-
-                                            for g in 1..num_bodies {
-                                                let planet = Planet::new(
-                                                    &star,
-                                                    tb_m,
-                                                    tb_n,
-                                                    g,
-                                                    last_distance,
-                                                );
-                                                if planet.is_roche_ok() {
-                                                    stats.add_planet(&planet);
-                                                    // TODO: create satellites
-                                                    // TODO: create rings
-                                                }
-                                                last_distance = planet.get_orbit().get_sma();
-                                            }
-
-                                            // TODO: create Kuiper belt
-                                            // TODO: create Oort cloud
-                                            // TODO: create comets
-                                        }
-                                    }
-
-                                    if verbose {
-                                        println!("Finished thread {}, adding stats...", t + 1);
-                                    }
-
-                                    let mut total_shared_stats = shared_stats_clone.lock().unwrap();
-                                    total_shared_stats.add_stats(&stats);
-
-                                    if verbose {
-                                        println!("Stats for thread {} added.", t + 1);
-                                    }
-                                })
-                            })
-                            .collect();
-
-                        let created_stars_clone = created_stars.clone();
-                        handles.push(thread::spawn(move || {
-                            while created_stars_clone.load(Ordering::SeqCst) < (star_count as usize)
-                            {
-                                print!(
-                                    "Created {} stars and their planets.\r",
-                                    created_stars_clone.load(Ordering::SeqCst)
-                                );
-                                thread::sleep(Duration::from_millis(50));
-                            }
-                            println!("It seems that all stars have been created. Finishing...");
-                        }));
-
-                        for thread in handles {
-                            thread.join().unwrap();
-                        }
-
-                        println!(
-                            "Finished the creation of the galaxy with {} stars.",
-                            star_count
-                        );
-                        let final_shared_stats = shared_stats.lock().unwrap();
-                        print_stats(&final_shared_stats);
-                    }
-                } else {
-                    println!("You must provide the galaxy ID.");
-                    exit(1);
-                }
-            }
-            "-h" | "--help" => show_help(false),
-            _ => show_help(true),
+        // After printing the error, print the causes, in order.
+        for e in e.causes().skip(1) {
+            eprintln!("\t{}{}", "Caused by: ".bold(), e);
         }
-    } else {
-        show_help(true);
+
+        // Exit with a non-zero exit code.
+        ::std::process::exit(1);
     }
 }
 
-fn show_help(error: bool) {
-    println!();
-    println!("You must include the action you want. Currently you have these options:");
-    println!(
-        "-e, --earth\t\tGenerates lots of random stars and planets until it finds an earth \
-         twin."
-    );
-    println!(
-        "-g, --create-galaxy\tGenerates a complete new galaxy and shows statistics (not yet \
-         functional)."
-    );
-    println!();
-    if error {
-        exit(1)
+/// Actual logic of the program.
+fn run() -> Result<(), Error> {
+    // Check the CLI arguments.
+    let cli = cli::generate().get_matches();
+
+    let verbose = cli.is_present("verbose");
+
+    if cli.is_present("earth") {
+        let (star, planet) = search_for_earth();
+        print_star(star);
+        print_planet(planet);
     } else {
-        exit(0)
+        let cli_stars = cli.value_of("stars")
+            .expect("no stars value found")
+            .parse()
+            .context(format!(
+                "invalid stars value, it must be an integer between 1 and {}",
+                u64::max_value()
+            ))?;
+        if cli_stars == 0 {
+            bail!(
+                "invalid stars value, it must be an integer between 1 and {}",
+                u64::max_value()
+            );
+        }
+        let final_stars = thread_rng().gen_range(stars * 0.9, stars * 1.1);
+        let threads = if let Some(threads) = cli.value_of("threads") {
+            let cli_threads = threads.parse().context(format!(
+                "invalid threads value, it must be an integer between 1 and {}",
+                usize::max_value()
+            ))?;
+            if cli_threads == 0 || cli_threads == usize::max_value() - 1 {
+                bail!(
+                    "invalid threads value, it must be an integer between 1 and {}",
+                    usize::max_value() - 1
+                );
+            }
+            cli_threads
+        } else {
+            num_cpus::get()
+        };
+        generate_galaxy(stars, threads, verbose);
     }
 }
 
-fn show_creation_help(error: bool) {
-    println!();
-    println!("You can specify the following parameters:");
-    println!("-t, --threads\tThe number of threads to use during the creation. By default, 1.");
-    println!(
-        "-s, --stars\tThe number of stars to create. By default, randomly between 950,000 \
-         and 1,050,000."
-    );
-    println!("-v, --verbose\tVerbose output.");
-    println!();
-    if error {
-        exit(1)
-    } else {
-        exit(0)
+fn search_for_earth() -> (Star, Planet) {
+    loop {
+        let new_star: Star = Star::new(0, 1);
+        let num_bodies = new_star.generate_num_bodies();
+
+        if num_bodies > 1 {
+            let (new_tb_m, new_tb_n) = new_star.generate_titius_bode(num_bodies);
+            let new_planet: Planet = Planet::new(
+                &new_star,
+                new_tb_m,
+                new_tb_n,
+                rand::thread_rng().gen_range(1, num_bodies),
+                0_f64,
+            );
+
+            if new_planet.is_roche_ok() && new_planet.is_earth_twin() {
+                break (new_star, new_planet);
+            }
+        }
     }
+}
+
+fn generate_galaxy(star_count: u64, threads: usize, verbose: bool) {
+    println!("Creating a galaxy of {} stars...", star_count);
+    println!();
+
+    if verbose {
+        println!("Threads: {}", threads);
+        println!(
+            "Stars per thread: {}-{}",
+            star_count / (threads as u64),
+            star_count % (threads as u64) + star_count / (threads as u64)
+        );
+        println!();
+    }
+
+    let shared_stats = Arc::new(Mutex::new(Stats::new()));
+    let created_stars = Arc::new(ATOMIC_USIZE_INIT);
+
+    let mut handles: Vec<_> = (0..threads)
+        .map(|t| {
+            if verbose {
+                println!("Starting thread {}", t + 1);
+            }
+            let created_stars_clone = created_stars.clone();
+            let shared_stats_clone = shared_stats.clone();
+            thread::spawn(move || {
+                let thread_star_count = if t < threads - 1 {
+                    star_count / (threads as u64)
+                } else {
+                    star_count % (threads as u64) + star_count / (threads as u64)
+                };
+                let mut stats = Stats::new();
+
+                for i in 0..thread_star_count {
+                    let star = Star::new(i, galaxy_id);
+                    stats.add_star(&star);
+                    if i % 5_000 == 0 {
+                        created_stars_clone.fetch_add(10_000, Ordering::SeqCst);
+                    }
+
+                    let num_bodies = star.generate_num_bodies();
+
+                    if num_bodies > 0 {
+                        let (tb_m, tb_n) = star.generate_titius_bode(num_bodies);
+                        let mut last_distance = 0_f64;
+
+                        for g in 1..num_bodies {
+                            let planet = Planet::new(&star, tb_m, tb_n, g, last_distance);
+                            if planet.is_roche_ok() {
+                                stats.add_planet(&planet);
+                                // TODO: create satellites
+                                // TODO: create rings
+                            }
+                            last_distance = planet.get_orbit().get_sma();
+                        }
+
+                        // TODO: create Kuiper belt
+                        // TODO: create Oort cloud
+                        // TODO: create comets
+                    }
+                }
+
+                if verbose {
+                    println!("Finished thread {}, adding stats...", t + 1);
+                }
+
+                let mut total_shared_stats = shared_stats_clone.lock().unwrap();
+                total_shared_stats.add_stats(&stats);
+
+                if verbose {
+                    println!("Stats for thread {} added.", t + 1);
+                }
+            })
+        })
+        .collect();
+
+    let created_stars_clone = created_stars.clone();
+    handles.push(thread::spawn(move || {
+        while created_stars_clone.load(Ordering::SeqCst) < (star_count as usize) {
+            print!(
+                "Created {} stars and their planets.\r",
+                created_stars_clone.load(Ordering::SeqCst)
+            );
+            thread::sleep(Duration::from_millis(50));
+        }
+        println!("It seems that all stars have been created. Finishing...");
+    }));
+
+    for thread in handles {
+        thread.join().unwrap();
+    }
+
+    println!(
+        "Finished the creation of the galaxy with {} stars.",
+        star_count
+    );
+    let final_shared_stats = shared_stats.lock().unwrap();
+    print_stats(&final_shared_stats);
 }
 
 fn print_star(star: &Star) {

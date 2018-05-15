@@ -469,9 +469,9 @@ impl Star {
 
 #[cfg(test)]
 mod tests {
-    use super::Star;
-    use super::Class;
     use super::super::consts::*;
+    use super::Class;
+    use super::Star;
 
     #[test]
     fn it_star_getters() {

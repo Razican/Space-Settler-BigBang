@@ -1104,9 +1104,9 @@ impl Surface {
 
 #[cfg(test)]
 mod tests {
+    use super::super::star::Star;
     use super::Planet;
     use super::Type;
-    use super::super::star::Star;
 
     #[test]
     fn it_orbit_getters() {

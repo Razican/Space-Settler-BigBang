@@ -10,7 +10,11 @@ Big-Bang generator for Space Settler.
 """
 
 [dependencies]
-rand="0.4.2" # In the future substitute by Mersenne Twister
+failure = "0.1.1"
+clap = "2.31.2"
+colored = "1.6.0"
+num_cpus = "1.8.0"
+rand = "0.5.0-pre.1"
 
 # The release profile, used for `cargo build`.
 [profile.dev]

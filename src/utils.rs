@@ -125,8 +125,8 @@ fn get_water_melt_pressure(temp: f64) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use std::f64::consts::PI;
     use super::*;
+    use std::f64::consts::PI;
 
     #[test]
     fn it_rad_to_deg() {
