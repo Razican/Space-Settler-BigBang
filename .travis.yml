@@ -1,57 +1,59 @@
 language: rust
+cache: cargo
 sudo: false
-dist: trusty
+dist: xenial
+
 os:
-  - linux
-  - osx
+- linux
+- osx
+- windows
+
 addons:
   apt:
     packages:
-      - libcurl4-openssl-dev
-      - libelf-dev
-      - libdw-dev
-      - binutils-dev
+    - libcurl4-openssl-dev
+    - libelf-dev
+    - libdw-dev
+    - cmake
+    - gcc
+    - binutils-dev
+    - libiberty-dev
+    - zlib1g-dev
 
 # run builds for all the trains
 rust:
-  - nightly
-  - beta
-  - stable
-  - 1.14.0
+- 1.31.1
+- stable
+- beta
+- nightly
 
-# load travis-cargo
-before_script:
-  - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      pip install git+https://github.com/FractalGlobal/travis-cargo.git@fix-coveralls --user &&
-      export PATH=$HOME/.local/bin:$PATH
-      fi
+# Extra jobs to include
+jobs:
+  include:
+  # Upload documentation
+  - name: "Documentation upload"
+    os: linux
+    rust: stable
+    stage: deploy
+    env: CACHE_NAME=DOCS
+    script: ./travis-helper.sh documentation
+    deploy: &pages
+      provider: pages
+      github-token: $GH_TOKEN
+      local-dir: target/doc/
+      skip_cleanup: true
+      keep-history: true
+      on:
+        repo: Razican/Space-Settler-BigBang
+        branch: develop
 
-# the main build
+matrix:
+  allow_failures:
+  - os: windows
+  - rust: nightly
+
+# Run the multiple tests.
 script:
-  - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      travis-cargo build &&
-      travis-cargo test &&
-      travis-cargo bench &&
-      travis-cargo --only stable doc;
-      fi
-  - |
-      if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      cargo build -v &&
-      cargo test &&
-      cargo bench;
-      fi
-after_success:
-  - |
-      if [["$TRAVIS_OS_NAME" == "linux"]]; then
-      travis-cargo --only stable doc-upload;
-      fi
-  - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      travis-cargo --only stable coveralls --no-sudo --verify;
-      fi
-
-env:
-  global:
-    - TRAVIS_CARGO_NIGHTLY_FEATURE=""
+- ./travis-helper.sh fmt_check
+- ./travis-helper.sh clippy_check
+- ./travis-helper.sh test

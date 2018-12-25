@@ -33,8 +33,8 @@ pub fn rad_to_deg(rads: f64) -> f64 {
 /// # use std::f64::consts::PI;
 /// # assert_eq!(2_f64*PI, rad);
 /// ```
-pub fn deg_to_rad(degs: f64) -> f64 {
-    degs * PI / 180_f64
+pub fn deg_to_rad(degrees: f64) -> f64 {
+    degrees * PI / 180_f64
 }
 
 /// Converts Celsius degrees (*°C*)to Kelvin (*K*)
@@ -111,8 +111,10 @@ pub fn can_water_be_ice(min_temp: f64, pressure: f64) -> bool {
 
 fn get_water_vaporize_pressure(temp: f64) -> f64 {
     -2836.5744 * temp.powi(-2) - 6028.076559 / temp + 19.54263612 - 0.02737830188 * temp
-        + 1.6261698e-5 * temp.powi(2) + 7.022905e-10 * temp.powi(3)
-        - 1.8680009e-13 * temp.powi(4) + 2.7150305 * temp.ln()
+        + 1.6261698e-5 * temp.powi(2)
+        + 7.022905e-10 * temp.powi(3)
+        - 1.8680009e-13 * temp.powi(4)
+        + 2.7150305 * temp.ln()
 }
 
 fn get_water_sublimation_pressure(temp: f64) -> f64 {
@@ -126,25 +128,29 @@ fn get_water_melt_pressure(temp: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::f64::consts::PI;
+    use std::f64::{consts::PI, EPSILON};
 
     #[test]
     fn it_rad_to_deg() {
-        assert_eq!(360_f64, rad_to_deg(2_f64 * PI));
+        let res = rad_to_deg(2_f64 * PI);
+        assert!(res >= 360_f64 - EPSILON && res <= 360_f64 + EPSILON);
     }
 
     #[test]
     fn it_deg_to_rad() {
-        assert_eq!(2_f64 * PI, deg_to_rad(360_f64));
+        let res = deg_to_rad(360_f64);
+        assert!(res >= 2_f64 * PI - EPSILON && res <= 2_f64 * PI + EPSILON);
     }
 
     #[test]
     fn it_celsius_to_kelvin() {
-        assert_eq!(473.15_f64, celsius_to_kelvin(200_f64));
+        let res = celsius_to_kelvin(200_f64);
+        assert!(res >= 473.15 - EPSILON && res <= 473.15 + EPSILON);
     }
 
     #[test]
     fn it_kelvin_to_celsius() {
-        assert_eq!(0_f64, kelvin_to_celsius(273.15_f64));
+        let res = kelvin_to_celsius(273.15_f64);
+        assert!(res >= 0_f64 - EPSILON && res <= 0_f64 + EPSILON);
     }
 }

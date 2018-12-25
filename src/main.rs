@@ -6,15 +6,29 @@
 //! Then, the planets are created thinking on habitability, but following as far as possible all the
 //! physical laws.
 
-#![cfg_attr(feature = "cargo-clippy", deny(clippy))]
 #![forbid(anonymous_parameters)]
-//#![cfg_attr(feature = "cargo-clippy", warn(clippy_pedantic))]
-#![deny(variant_size_differences, unused_results, unused_qualifications, unused_import_braces,
-        unsafe_code, trivial_numeric_casts, trivial_casts, missing_docs,
-        missing_debug_implementations, missing_copy_implementations, unused_extern_crates)]
-#![cfg_attr(feature = "cargo-clippy",
-            allow(inconsistent_digit_grouping, large_digit_groups, unreadable_literal))]
-#![allow(illegal_floating_point_literal_pattern, unused_results)]
+//#![warn(clippy::pedantic)]
+#![deny(
+    clippy::all,
+    variant_size_differences,
+    unused_results,
+    unused_qualifications,
+    unused_import_braces,
+    unsafe_code,
+    trivial_numeric_casts,
+    trivial_casts,
+    missing_docs,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    unused_extern_crates
+)]
+#![allow(
+    illegal_floating_point_literal_pattern,
+    unused_results,
+    clippy::inconsistent_digit_grouping,
+    clippy::large_digit_groups,
+    clippy::unreadable_literal
+)]
 
 #[macro_use]
 extern crate failure;
@@ -31,19 +45,22 @@ mod planet;
 mod star;
 mod utils;
 
-use std::sync::atomic::{Ordering, ATOMIC_USIZE_INIT};
-use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
-use std::{usize, u64};
+use std::{
+    f64,
+    sync::{
+        atomic::{Ordering, ATOMIC_USIZE_INIT},
+        Arc, Mutex,
+    },
+    thread,
+    time::Duration,
+    u64, usize,
+};
 
-use failure::Error;
-use rand::Rng;
+use colored::Colorize;
+use failure::{Error, ResultExt};
+use rand::{thread_rng, Rng};
 
-use consts::*;
-use planet::Planet;
-use star::Star;
-use utils::*;
+use crate::{consts::*, planet::Planet, star::Star, utils::*};
 
 /// Program entry point.
 ///
@@ -55,7 +72,7 @@ fn main() {
         eprintln!("{} {}", "Error:".bold().red(), e);
 
         // After printing the error, print the causes, in order.
-        for e in e.causes().skip(1) {
+        for e in e.iter_causes() {
             eprintln!("\t{}{}", "Caused by: ".bold(), e);
         }
 
@@ -73,25 +90,28 @@ fn run() -> Result<(), Error> {
 
     if cli.is_present("earth") {
         let (star, planet) = search_for_earth();
-        print_star(star);
-        print_planet(planet);
+        print_star(&star);
+        print_planet(&planet);
     } else {
-        let cli_stars = cli.value_of("stars")
+        let cli_stars = cli
+            .value_of("stars")
             .expect("no stars value found")
-            .parse()
+            .parse::<f64>()
             .context(format!(
                 "invalid stars value, it must be an integer between 1 and {}",
                 u64::max_value()
             ))?;
-        if cli_stars == 0 {
+        if cli_stars == 0_f64 {
             bail!(
                 "invalid stars value, it must be an integer between 1 and {}",
                 u64::max_value()
             );
         }
-        let final_stars = thread_rng().gen_range(stars * 0.9, stars * 1.1);
+        let final_stars = thread_rng()
+            .gen_range(cli_stars * 0.9, cli_stars * 1.1)
+            .round() as u64;
         let threads = if let Some(threads) = cli.value_of("threads") {
-            let cli_threads = threads.parse().context(format!(
+            let cli_threads = threads.parse::<usize>().context(format!(
                 "invalid threads value, it must be an integer between 1 and {}",
                 usize::max_value()
             ))?;
@@ -105,13 +125,14 @@ fn run() -> Result<(), Error> {
         } else {
             num_cpus::get()
         };
-        generate_galaxy(stars, threads, verbose);
+        generate_galaxy(final_stars, threads, verbose);
     }
+    Ok(())
 }
 
 fn search_for_earth() -> (Star, Planet) {
     loop {
-        let new_star: Star = Star::new(0, 1);
+        let new_star: Star = Star::new(0);
         let num_bodies = new_star.generate_num_bodies();
 
         if num_bodies > 1 {
@@ -120,11 +141,11 @@ fn search_for_earth() -> (Star, Planet) {
                 &new_star,
                 new_tb_m,
                 new_tb_n,
-                rand::thread_rng().gen_range(1, num_bodies),
+                thread_rng().gen_range(1, num_bodies),
                 0_f64,
             );
 
-            if new_planet.is_roche_ok() && new_planet.is_earth_twin() {
+            if new_planet.is_roche_ok(&new_star) && new_planet.is_earth_twin() {
                 break (new_star, new_planet);
             }
         }
@@ -145,7 +166,7 @@ fn generate_galaxy(star_count: u64, threads: usize, verbose: bool) {
         println!();
     }
 
-    let shared_stats = Arc::new(Mutex::new(Stats::new()));
+    let shared_stats = Arc::new(Mutex::new(Stats::default()));
     let created_stars = Arc::new(ATOMIC_USIZE_INIT);
 
     let mut handles: Vec<_> = (0..threads)
@@ -161,10 +182,10 @@ fn generate_galaxy(star_count: u64, threads: usize, verbose: bool) {
                 } else {
                     star_count % (threads as u64) + star_count / (threads as u64)
                 };
-                let mut stats = Stats::new();
+                let mut stats = Stats::default();
 
                 for i in 0..thread_star_count {
-                    let star = Star::new(i, galaxy_id);
+                    let star = Star::new(i);
                     stats.add_star(&star);
                     if i % 5_000 == 0 {
                         created_stars_clone.fetch_add(10_000, Ordering::SeqCst);
@@ -178,7 +199,7 @@ fn generate_galaxy(star_count: u64, threads: usize, verbose: bool) {
 
                         for g in 1..num_bodies {
                             let planet = Planet::new(&star, tb_m, tb_n, g, last_distance);
-                            if planet.is_roche_ok() {
+                            if planet.is_roche_ok(&star) {
                                 stats.add_planet(&planet);
                                 // TODO: create satellites
                                 // TODO: create rings
@@ -234,7 +255,6 @@ fn print_star(star: &Star) {
     println!("Created a new star:");
 
     println!("\tID: {}", star.get_id());
-    println!("\tGalaxy: {}", star.get_galaxy_id());
     println!(
         "\tOrbit: {} light years from the center of the galaxy",
         star.get_orbit()
@@ -254,7 +274,6 @@ fn print_star(star: &Star) {
 fn print_planet(planet: &Planet) {
     println!("\nCreated a new Planet:");
 
-    println!("\tStar ID: {}", planet.get_orbit().get_star().get_id());
     println!(
         "\tPosition in solar system: {}",
         planet.get_orbit().get_position()
@@ -496,7 +515,7 @@ fn print_stats(st: &Stats) {
 }
 
 /// Statistics structure.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Stats {
     // Stars
     black_holes: u32,
@@ -535,43 +554,6 @@ pub struct Stats {
 }
 
 impl Stats {
-    /// Creates a new, empty `Stats` object.
-    pub fn new() -> Stats {
-        Stats {
-            black_holes: 0,
-            neutron_stars: 0,
-            quark_stars: 0,
-            white_dwarfs: 0,
-            o_stars: 0,
-            b_stars: 0,
-            a_stars: 0,
-            f_stars: 0,
-            g_stars: 0,
-            k_stars: 0,
-            m_stars: 0,
-            gaseous: 0,
-            rocky: 0,
-            small_planets: 0,
-            super_earths: 0,
-            earth_twins: 0,
-            ocean_planets: 0,
-            habitable: 0,
-            hot_jupiters: 0,
-            mini_neptunes: 0,
-            min_gravity: 0_f64,
-            max_gravity: 0_f64,
-            min_temp: 0_f64,
-            max_temp: 0_f64,
-            min_sma: 0_f64,
-            max_sma: 0_f64,
-            min_orb_period: 0_f64,
-            max_orb_period: 0_f64,
-            min_day: 0_f64,
-            max_day: 0_f64,
-            max_pressure: 0_f64,
-        }
-    }
-
     /// Adds a star to the stats.
     pub fn add_star(&mut self, st: &Star) {
         match *st.get_class() {
@@ -651,7 +633,7 @@ impl Stats {
                     self.earth_twins += 1;
                 }
 
-                if planet.get_surface().unwrap().get_ocean_water() == 1_f64 {
+                if planet.get_surface().unwrap().get_ocean_water() > 1_f64 - f64::EPSILON {
                     self.ocean_planets += 1;
                 }
             }
@@ -728,14 +710,22 @@ impl Stats {
 
     /// Gets the total stars in the stats.
     pub fn get_total_stars(&self) -> u32 {
-        self.black_holes + self.neutron_stars + self.quark_stars + self.white_dwarfs + self.o_stars
-            + self.b_stars + self.a_stars + self.f_stars + self.g_stars + self.k_stars
+        self.black_holes
+            + self.neutron_stars
+            + self.quark_stars
+            + self.white_dwarfs
+            + self.o_stars
+            + self.b_stars
+            + self.a_stars
+            + self.f_stars
+            + self.g_stars
+            + self.k_stars
             + self.m_stars
     }
 
     /// Gets the black hole percentage.
     pub fn get_black_hole_percent(&self) -> f64 {
-        (self.black_holes as f64) / (self.get_total_stars() as f64)
+        f64::from(self.black_holes) / f64::from(self.get_total_stars())
     }
 
     /// Gets the number of black holes.
@@ -745,7 +735,7 @@ impl Stats {
 
     /// Gets the percentage of neutron stars.
     pub fn get_neutron_star_percent(&self) -> f64 {
-        (self.neutron_stars as f64) / (self.get_total_stars() as f64)
+        f64::from(self.neutron_stars) / f64::from(self.get_total_stars())
     }
 
     /// Gets the number of neutron stars.
@@ -755,7 +745,7 @@ impl Stats {
 
     /// Gets the percentage of quark stars.
     pub fn get_quark_star_percent(&self) -> f64 {
-        (self.quark_stars as f64) / (self.get_total_stars() as f64)
+        f64::from(self.quark_stars) / f64::from(self.get_total_stars())
     }
 
     /// Gets the number of quark stars.
@@ -765,7 +755,7 @@ impl Stats {
 
     /// Gets the percentage of white dwarfs.
     pub fn get_white_dwarf_percent(&self) -> f64 {
-        (self.white_dwarfs as f64) / (self.get_total_stars() as f64)
+        f64::from(self.white_dwarfs) / f64::from(self.get_total_stars())
     }
 
     /// Gets the number of white dwarfs.
@@ -775,7 +765,7 @@ impl Stats {
 
     /// Gets the O type star percentage.
     pub fn get_o_star_percent(&self) -> f64 {
-        (self.o_stars as f64) / (self.get_total_stars() as f64)
+        f64::from(self.o_stars) / f64::from(self.get_total_stars())
     }
 
     /// Gets the number of O type stars.
@@ -785,7 +775,7 @@ impl Stats {
 
     /// Gets the percentage of B type stars.
     pub fn get_b_star_percent(&self) -> f64 {
-        (self.b_stars as f64) / (self.get_total_stars() as f64)
+        f64::from(self.b_stars) / f64::from(self.get_total_stars())
     }
 
     /// Gets the number of B type stars.
@@ -795,7 +785,7 @@ impl Stats {
 
     /// Gets the percentage of A type stars.
     pub fn get_a_star_percent(&self) -> f64 {
-        (self.a_stars as f64) / (self.get_total_stars() as f64)
+        f64::from(self.a_stars) / f64::from(self.get_total_stars())
     }
 
     /// Gets the number of A type stars.
@@ -805,7 +795,7 @@ impl Stats {
 
     /// Gets the percentage of F type stars.
     pub fn get_f_star_percent(&self) -> f64 {
-        (self.f_stars as f64) / (self.get_total_stars() as f64)
+        f64::from(self.f_stars) / f64::from(self.get_total_stars())
     }
 
     /// Gets the number of F type stars.
@@ -815,7 +805,7 @@ impl Stats {
 
     /// Gets the percentage of G type stars.
     pub fn get_g_star_percent(&self) -> f64 {
-        (self.g_stars as f64) / (self.get_total_stars() as f64)
+        f64::from(self.g_stars) / f64::from(self.get_total_stars())
     }
 
     /// Gets the number of G type stars.
@@ -825,7 +815,7 @@ impl Stats {
 
     /// Gets the percentage of K type stars.
     pub fn get_k_star_percent(&self) -> f64 {
-        (self.k_stars as f64) / (self.get_total_stars() as f64)
+        f64::from(self.k_stars) / f64::from(self.get_total_stars())
     }
 
     /// Gets the number of K type stars.
@@ -835,7 +825,7 @@ impl Stats {
 
     /// Gets the percentage of M type stars.
     pub fn get_m_star_percent(&self) -> f64 {
-        (self.m_stars as f64) / (self.get_total_stars() as f64)
+        f64::from(self.m_stars) / f64::from(self.get_total_stars())
     }
 
     /// Gets the number of M type stars.
@@ -852,7 +842,7 @@ impl Stats {
 
     /// Gets the gaseous planet percentage.
     pub fn get_gaseous_planet_percent(&self) -> f64 {
-        (self.gaseous as f64) / (self.get_total_planets() as f64)
+        f64::from(self.gaseous) / f64::from(self.get_total_planets())
     }
 
     /// Gets the number of gaseous planets.
@@ -872,7 +862,7 @@ impl Stats {
 
     /// Gets the rocky planet percentage.
     pub fn get_rocky_planet_percent(&self) -> f64 {
-        (self.rocky as f64) / (self.get_total_planets() as f64)
+        f64::from(self.rocky) / f64::from(self.get_total_planets())
     }
 
     /// Gets the number of rocky planets.
@@ -937,7 +927,7 @@ impl Stats {
         self.max_sma
     }
 
-    /// Gets the mimimum orbit period for a planet.
+    /// Gets the minimum orbit period for a planet.
     pub fn get_min_orb_period(&self) -> f64 {
         self.min_orb_period
     }
@@ -957,7 +947,7 @@ impl Stats {
         self.max_day
     }
 
-    /// Gets the maximum surface pressue for a planet.
+    /// Gets the maximum surface pressure for a planet.
     pub fn get_max_pressure(&self) -> f64 {
         self.max_pressure
     }
