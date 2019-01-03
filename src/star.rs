@@ -100,11 +100,11 @@ impl fmt::Display for Class {
 #[derive(Debug, Clone)]
 pub struct Star {
     id: u64,
-    orb_radius: u32,
+    orb_radius: i32,
     class: Class,
     mass: f64,
     radius: f64,
-    temperature: u32,
+    temperature: i32,
     planets: Vec<Planet>,
 }
 
@@ -147,8 +147,8 @@ impl Star {
 
     /// Get orbit
     ///
-    /// Gets the orbit radius around the center of the galaxy, in light years (*ly*).
-    pub fn get_orbit(&self) -> u32 {
+    /// Gets the orbit radius around the center of the galaxy, in 1/100 light years (*ly*).
+    pub fn get_orbit(&self) -> i32 {
         self.orb_radius
     }
 
@@ -189,8 +189,8 @@ impl Star {
 
     /// Get temperature
     ///
-    /// Gets the effective surface temperature of the star, in Kelvin (*K*).
-    pub fn get_temperature(&self) -> u32 {
+    /// Gets the effective surface temperature of the star, in 1/1,000 Kelvin (*K*).
+    pub fn get_temperature(&self) -> i32 {
         self.temperature
     }
 
@@ -231,7 +231,7 @@ impl Star {
     ///
     /// Generates the basic properties (mass, radius and effective surface temperature) of the star
     /// taking into account the star class.
-    fn generate_properties(class: Class) -> (f64, f64, u32) {
+    fn generate_properties(class: Class) -> (f64, f64, i32) {
         use crate::consts::{SUN_MASS, SUN_RADIUS};
 
         match class {

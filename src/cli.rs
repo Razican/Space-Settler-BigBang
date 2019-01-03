@@ -12,6 +12,7 @@ pub fn generate() -> App<'static, 'static> {
                 .help("Just search for an earth-like planet.")
                 .required_unless("galaxy")
                 .conflicts_with("galaxy")
+                .conflicts_with("stars")
                 .takes_value(false)
         ).arg(
             Arg::with_name("galaxy")

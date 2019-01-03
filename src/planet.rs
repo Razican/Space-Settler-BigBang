@@ -3,12 +3,12 @@
 //! This is the `planet` module. This module contains all the structures, enumerations and
 //! implementations needed to define a planet.
 
-use rand::{thread_rng, Rng};
-
 use std::{
     f64::consts::{FRAC_PI_6, FRAC_PI_8, PI},
     fmt,
 };
+
+use rand::{thread_rng, Rng};
 
 use crate::{consts::*, star::Star, utils::*};
 
