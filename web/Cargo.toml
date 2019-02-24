@@ -1,0 +1,37 @@
+[package]
+name = "sps_web"
+version = "0.1.0"
+authors = ["Razican <razican@protonmail.ch>"]
+edition = "2018"
+license = "GPL-3.0"
+repository = "https://github.com/Razican/Space-Settler-BigBang"
+description = """
+Space Settler web interface.
+"""
+
+[[bin]]
+name = "sps_web_launch"
+path = "src/main.rs"
+
+[lib]
+name = "sps_web_core"
+path = "src/lib.rs"
+
+[dependencies]
+sps_db = { path = "../db" }
+failure = "0.1.5"
+rocket = "0.4.0"
+flate2 = "1.0.6"
+dotenv = "0.13.0"
+
+[dependencies.maud]
+version = "0.20.0"
+features = ["rocket"]
+
+[dependencies.rocket_contrib]
+version = "0.4.0"
+default-features = false
+features = ["diesel_postgres_pool"]
+
+[build-dependencies]
+failure = "0.1.5"

@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{crate_version, App, Arg};
 
 /// Generates the command line interface.
 pub fn generate() -> App<'static, 'static> {

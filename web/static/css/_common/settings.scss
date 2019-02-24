@@ -1,0 +1,16 @@
+// Main settings for the panel.
+
+$background-color: #aaa;
+$text-color: #333;
+
+$ok-bg-color: #093;
+$warn-bg-color: #f60;
+$err-bg-color: #E22;
+$unknown-bg-color: #ccc;
+
+$border-radius: 2px;
+$border-color: #333;
+
+html, body {
+    background-color: $background-color;
+}

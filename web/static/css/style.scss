@@ -1,0 +1,76 @@
+// Control panel styles.
+
+@import "_common/bootstrap";
+@import "_common/settings";
+@import "_common/header";
+@import "_common/footer";
+
+* {
+    border-radius: $border-radius;
+    text-align: center;
+}
+
+.unknown {
+    background-color: $unknown-bg-color;
+}
+
+.ok {
+    background-color: $ok-bg-color;
+}
+
+.warn {
+    background-color: $warn-bg-color;
+}
+
+.error {
+    background-color: $err-bg-color;
+}
+
+h1 {
+    margin: 1em 5em;
+    padding: 0.1em 1em;
+    border: 4px double $border-color;
+    color: $text-color;
+    text-align: center;
+}
+
+.map-container {
+    position: relative;
+    padding-top: 28.125%;
+    margin-bottom: auto;
+}
+
+#map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+
+.status {
+    .row {
+        div {
+            padding: 0.2em;
+
+            span {
+                border: 2px double $border-color;
+                display: block;
+            }
+        }
+    }
+}
+
+.info {
+    text-align: left;
+}
+
+textarea {
+    &.telemetry {
+        min-height: 10em;
+        border: 1px solid $border-color;
+        margin-top: 1em;
+        text-align: left;
+        color: #000;
+    }
+}

@@ -1,0 +1,35 @@
+[package]
+name = "sps_bigbang"
+version = "0.0.2"
+authors = ["Razican <razican@protonmail.ch>"]
+edition = "2018"
+license = "GPL-3.0"
+readme = "README.md"
+repository = "https://github.com/Razican/Space-Settler-BigBang"
+description = """
+Big-Bang generator for Space Settler.
+"""
+
+[dependencies]
+sps_db = { path = "../db" }
+failure = "0.1.5"
+clap = "2.32.0"
+colored = "1.7.0"
+num_cpus = "1.10.0"
+rand = "0.6.5"
+r2d2 = "0.8.3"
+r2d2-diesel = "1.0.0"
+lazy_static = "1.2.0"
+dotenv = "0.13.0"
+
+[dependencies.diesel]
+version = "1.4.1"
+features = ["postgres"]#, "uuid", "chrono", "64-column-tables"]
+
+[[bin]]
+name = "bigbang"
+path = "src/main.rs"
+
+[lib]
+name = "sps_creation_core"
+path = "src/lib.rs"

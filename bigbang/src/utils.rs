@@ -10,6 +10,7 @@ use std::f64::consts::PI;
 ///
 /// ```
 /// use std::f64::consts::PI;
+/// use sps_creation_core::utils::rad_to_deg;
 ///
 /// let rad = 2_f64*PI;
 /// let deg = rad_to_deg(rad);
@@ -26,6 +27,8 @@ pub fn rad_to_deg(rads: f64) -> f64 {
 /// # Examples
 ///
 /// ```
+/// use sps_creation_core::utils::deg_to_rad;
+///
 /// let deg = 360_f64;
 /// let rad = deg_to_rad(deg);
 ///
@@ -42,6 +45,8 @@ pub fn deg_to_rad(degrees: f64) -> f64 {
 /// # Examples
 ///
 /// ```
+/// use sps_creation_core::utils::celsius_to_kelvin;
+///
 /// let celsius = 200_f64;
 /// let kelvin = celsius_to_kelvin(celsius);
 ///
@@ -57,6 +62,8 @@ pub fn celsius_to_kelvin(celsius: f64) -> f64 {
 /// # Examples
 ///
 /// ```
+/// use sps_creation_core::utils::kelvin_to_celsius;
+///
 /// let kelvin = 273.15_f64;
 /// let celsius = kelvin_to_celsius(kelvin);
 ///
@@ -72,6 +79,8 @@ pub fn kelvin_to_celsius(kelvin: f64) -> f64 {
 /// # Examples
 ///
 /// ```
+/// use sps_creation_core::utils::can_water_be_liquid;
+///
 /// let min_temp = 260_f64;
 /// let max_temp = 290_f64;
 /// let pressure = 101_325_f64;
@@ -92,6 +101,8 @@ pub fn can_water_be_liquid(min_temp: f64, max_temp: f64, pressure: f64) -> bool 
 /// # Examples
 ///
 /// ```
+/// use sps_creation_core::utils::can_water_be_ice;
+///
 /// let min_temp = 260_f64;
 /// let max_temp = 290_f64;
 /// let pressure = 101_325_f64;
@@ -109,6 +120,7 @@ pub fn can_water_be_ice(min_temp: f64, pressure: f64) -> bool {
     }
 }
 
+/// Gets the water vaporization pressure for the given temperature in Kelvins (*K*)
 fn get_water_vaporize_pressure(temp: f64) -> f64 {
     -2836.5744 * temp.powi(-2) - 6028.076559 / temp + 19.54263612 - 0.02737830188 * temp
         + 1.6261698e-5 * temp.powi(2)
@@ -117,10 +129,12 @@ fn get_water_vaporize_pressure(temp: f64) -> f64 {
         + 2.7150305 * temp.ln()
 }
 
+/// Gets the water sublimation pressure for the given temperature in Kelvins (*K*)
 fn get_water_sublimation_pressure(temp: f64) -> f64 {
     (-5723.265 / temp + 9.550426 - 0.00728332 * temp + 3.53068 * temp.ln()).exp()
 }
 
+/// Gets the water melting pressure for the given temperature in Kelvins (*K*)
 fn get_water_melt_pressure(temp: f64) -> f64 {
     -395.2 * ((temp / 273.16).powi(9) - 1_f64) * 1e+6
 }

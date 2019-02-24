@@ -22,33 +22,14 @@
     missing_copy_implementations,
     unused_extern_crates
 )]
-#![allow(
-    illegal_floating_point_literal_pattern,
-    unused_results,
-    clippy::inconsistent_digit_grouping,
-    clippy::large_digit_groups,
-    clippy::unreadable_literal
-)]
-
-#[macro_use]
-extern crate failure;
-#[macro_use]
-extern crate clap;
-extern crate colored;
-extern crate num_cpus;
-extern crate rand;
+#![allow(clippy::unreadable_literal)]
 
 mod cli;
-mod consts;
-mod error;
-mod planet;
-mod star;
-mod utils;
 
 use std::{
-    f64,
+    env, f64,
     sync::{
-        atomic::{Ordering, ATOMIC_USIZE_INIT},
+        atomic::{AtomicUsize, Ordering},
         Arc, Mutex,
     },
     thread,
@@ -57,10 +38,33 @@ use std::{
 };
 
 use colored::Colorize;
-use failure::{Error, ResultExt};
+use diesel::{pg::PgConnection, query_dsl::RunQueryDsl};
+use failure::{bail, Error, ResultExt};
+use lazy_static::lazy_static;
+use r2d2::Pool;
+use r2d2_diesel::ConnectionManager;
 use rand::{thread_rng, Rng};
+use sps_creation_core::{
+    consts::*,
+    planet::{self, Planet},
+    star::{self, Star},
+    utils::*,
+};
+use sps_db::{planets::PlanetDao, stars::StarDao};
 
-use crate::{consts::*, planet::Planet, star::Star, utils::*};
+lazy_static! {
+    /// Database connection.
+    static ref DB: Pool<ConnectionManager<PgConnection>> = {
+        let _ = dotenv::dotenv().ok();
+        let url = env::var("DATABASE_URL").unwrap_or("postgres://localhost/".to_owned());
+
+        let manager = ConnectionManager::<PgConnection>::new(url);
+        Pool::builder().build(manager).expect("failed to create database pool")
+    };
+}
+
+/// Number of stars to insert in the database at the same time.
+const STAR_BATCH: usize = 1_000;
 
 /// Program entry point.
 ///
@@ -132,7 +136,7 @@ fn run() -> Result<(), Error> {
 
 fn search_for_earth() -> (Star, Planet) {
     loop {
-        let new_star: Star = Star::new(0);
+        let new_star: Star = Star::new();
         let num_bodies = new_star.generate_num_bodies();
 
         if num_bodies > 1 {
@@ -158,22 +162,28 @@ fn generate_galaxy(star_count: u64, threads: usize, verbose: bool) {
 
     if verbose {
         println!("Threads: {}", threads);
-        println!(
-            "Stars per thread: {}-{}",
-            star_count / (threads as u64),
-            star_count % (threads as u64) + star_count / (threads as u64)
-        );
+        let min_stars_per_thread = star_count / (threads as u64);
+        let max_stars_per_thread = star_count % (threads as u64) + star_count / (threads as u64);
+        if min_stars_per_thread == max_stars_per_thread {
+            println!("Stars per thread: {}", min_stars_per_thread);
+        } else {
+            println!(
+                "Stars per thread: {}-{}",
+                min_stars_per_thread, max_stars_per_thread
+            );
+        }
         println!();
     }
 
     let shared_stats = Arc::new(Mutex::new(Stats::default()));
-    let created_stars = Arc::new(ATOMIC_USIZE_INIT);
+    let created_stars = Arc::new(AtomicUsize::new(0));
 
     let mut handles: Vec<_> = (0..threads)
         .map(|t| {
             if verbose {
                 println!("Starting thread {}", t + 1);
             }
+            let db_pool = DB.clone();
             let created_stars_clone = created_stars.clone();
             let shared_stats_clone = shared_stats.clone();
             thread::spawn(move || {
@@ -184,12 +194,10 @@ fn generate_galaxy(star_count: u64, threads: usize, verbose: bool) {
                 };
                 let mut stats = Stats::default();
 
+                let mut stars = Vec::with_capacity(STAR_BATCH);
                 for i in 0..thread_star_count {
-                    let star = Star::new(i);
+                    let mut star = Star::new();
                     stats.add_star(&star);
-                    if i % 5_000 == 0 {
-                        created_stars_clone.fetch_add(10_000, Ordering::SeqCst);
-                    }
 
                     let num_bodies = star.generate_num_bodies();
 
@@ -203,13 +211,55 @@ fn generate_galaxy(star_count: u64, threads: usize, verbose: bool) {
                                 stats.add_planet(&planet);
                                 // TODO: create satellites
                                 // TODO: create rings
+                                star.add_planet(planet);
                             }
-                            last_distance = planet.get_orbit().get_sma();
+                            last_distance = planet.orbit().sma();
                         }
 
-                        // TODO: create Kuiper belt
+                        // TODO: create belts
                         // TODO: create Oort cloud
                         // TODO: create comets
+                    }
+
+                    stars.push(star);
+
+                    if i % STAR_BATCH as u64 == 0 {
+                        let (new_stars, planets) =
+                            stars.drain(..).map(|s| (s.insertable(), s.planets())).fold(
+                                (
+                                    Vec::with_capacity(STAR_BATCH),
+                                    Vec::with_capacity(STAR_BATCH),
+                                ),
+                                |(mut sv, mut pv), (s, p)| {
+                                    sv.push(s);
+                                    pv.push(p);
+                                    (sv, pv)
+                                },
+                            );
+
+                        let inserted_stars = StarDao::insert(new_stars)
+                            .get_results(&*db_pool.get().expect("could not get db connection"))
+                            .expect("could not insert stars");
+
+                        let mut planets_to_insert = Vec::new();
+                        for new_planets in planets
+                            .into_iter()
+                            .zip(inserted_stars.into_iter())
+                            .map(|(pls, s)| pls.into_iter().map(|p| p.insertable(s.id()).collect()))
+                        {
+                            planets_to_insert.append(new_planets)
+                        }
+
+                        assert_eq!(
+                            PlanetDao::insert(planets_to_insert)
+                                .execute(&*db_pool.get().expect("could not get db connection"))
+                                .expect("could not insert planets"),
+                            planets_to_insert.len()
+                        );
+                    }
+
+                    if i % 1_000 == 0 {
+                        let _ = created_stars_clone.fetch_add(1_000, Ordering::SeqCst);
                     }
                 }
 
@@ -254,130 +304,122 @@ fn generate_galaxy(star_count: u64, threads: usize, verbose: bool) {
 fn print_star(star: &Star) {
     println!("Created a new star:");
 
-    println!("\tID: {}", star.get_id());
     println!(
         "\tOrbit: {} light years from the center of the galaxy",
-        star.get_orbit()
+        star.orbit_radius()
     );
-    println!("\tClass: {:?}", star.get_class());
-    println!("\tMass: {:.2} M☉", star.get_mass() / SUN_MASS);
-    println!("\tRadius: {:.2} R☉", star.get_radius() / SUN_RADIUS);
-    println!("\tDensity: {:.2} kg/m³", star.get_density());
-    println!("\tTemperature: {} K", star.get_temperature());
-    println!(
-        "\tLuminosity: {:.4} suns",
-        star.get_luminosity() / SUN_LUMINOSITY
-    );
+    println!("\tClass: {:?}", star.class());
+    println!("\tMass: {:.2} M☉", star.mass() / SUN_MASS);
+    println!("\tRadius: {:.2} R☉", star.radius() / SUN_RADIUS);
+    println!("\tDensity: {:.2} kg/m³", star.calculate_density());
+    if let Some(temp) = star.temperature() {
+        println!("\tTemperature: {} K", temp);
+        println!(
+            "\tLuminosity: {:.4} suns",
+            star.calculate_luminosity()
+                .expect("stars with temperature must have luminosity")
+                / SUN_LUMINOSITY
+        );
+    }
+
     println!();
 }
 
 fn print_planet(planet: &Planet) {
     println!("\nCreated a new Planet:");
 
-    println!(
-        "\tPosition in solar system: {}",
-        planet.get_orbit().get_position()
-    );
-    println!("\tPlanet type: {:?}", planet.get_type());
-    println!("\tBond albedo: {:.2}%", planet.get_bond_albedo() * 100_f64);
+    println!("\tPosition in solar system: {}", planet.orbit().position());
+    println!("\tPlanet type: {:?}", planet.planet_type());
+    println!("\tBond albedo: {:.2}%", planet.bond_albedo() * 100_f64);
     println!(
         "\tGeometric albedo: {:.2}%",
-        planet.get_geometric_albedo() * 100_f64
+        planet.geometric_albedo() * 100_f64
     );
-    if planet.get_mass() > 50_f64 * EARTH_MASS {
-        println!("\tMass: {:.3} Mj", planet.get_mass() / JUPITER_MASS);
-        println!("\tRadius: {:.3} Rj", planet.get_radius() / JUPITER_RADIUS);
+    if planet.mass() > 50_f64 * EARTH_MASS {
+        println!("\tMass: {:.3} Mj", planet.mass() / JUPITER_MASS);
+        println!("\tRadius: {:.3} Rj", planet.radius() / JUPITER_RADIUS);
     } else {
-        println!("\tMass: {:.3} M⊕", planet.get_mass() / EARTH_MASS);
-        println!("\tRadius: {:.3} R⊕", planet.get_radius() / EARTH_RADIUS);
+        println!("\tMass: {:.3} M⊕", planet.mass() / EARTH_MASS);
+        println!("\tRadius: {:.3} R⊕", planet.radius() / EARTH_RADIUS);
     }
-    println!("\tDensity: {} kg/m³", planet.get_density());
+    println!("\tDensity: {} kg/m³", planet.calculate_density());
     println!(
         "\tSurface gravity: {:.2}m/s² ({:.2}g)",
-        planet.get_surface_gravity(),
-        planet.get_surface_gravity() / EARTH_GRAVITY
+        planet.surface_gravity(),
+        planet.surface_gravity() / EARTH_GRAVITY
     );
-    if planet.get_type() == &planet::Type::Rocky {
+    if planet.planet_type() == &planet::Type::Rocky {
         println!(
             "\tMinimum temperature: {:.2}°C",
-            kelvin_to_celsius(planet.get_min_temp())
+            kelvin_to_celsius(planet.min_temp())
         );
         println!(
             "\tAverage temperature: {:.2}°C",
-            kelvin_to_celsius(planet.get_avg_temp())
+            kelvin_to_celsius(planet.avg_temp())
         );
         println!(
             "\tMaximum temperature: {:.2}°C",
-            kelvin_to_celsius(planet.get_max_temp())
+            kelvin_to_celsius(planet.max_temp())
         );
     }
     println!("\tOrbit:");
-    println!(
-        "\t\tSemimajor axis: {:.3} AU",
-        planet.get_orbit().get_sma() / AU
-    );
-    println!("\t\tEccentricity: {:.4}", planet.get_orbit().get_ecc());
-    println!(
-        "\t\tApoapsis: {:.3} AU",
-        planet.get_orbit().get_apoapsis() / AU
-    );
-    println!(
-        "\t\tPeriapsis: {:.3} AU",
-        planet.get_orbit().get_periapsis() / AU
-    );
+    println!("\t\tSemimajor axis: {:.3} AU", planet.orbit().sma() / AU);
+    println!("\t\tEccentricity: {:.4}", planet.orbit().ecc());
+    println!("\t\tApoapsis: {:.3} AU", planet.orbit().apoapsis() / AU);
+    println!("\t\tPeriapsis: {:.3} AU", planet.orbit().periapsis() / AU);
     println!(
         "\t\tOrbital period: {:.3} days",
-        planet.get_orbit().get_orb_period() / planet.get_orbit().get_day()
+        planet.orbit().orb_period() / planet.orbit().calculate_day()
     );
     println!(
         "\t\tDay length: {:.3} hours",
-        planet.get_orbit().get_day() / 3_600_f64
+        planet.orbit().calculate_day() / 3_600_f64
     );
     println!(
         "\t\tAxial tilt: {:.3}°",
-        rad_to_deg(planet.get_orbit().get_ax_tilt())
+        rad_to_deg(planet.orbit().ax_tilt())
     );
-    if planet.get_atmosphere().is_some() {
+    if planet.atmosphere().is_some() {
         println!("\tAtmosphere:");
         println!(
             "\t\tPressure: {:.2} Pa",
-            planet.get_atmosphere().unwrap().get_pressure()
+            planet.atmosphere().unwrap().pressure()
         );
         println!(
             "\t\tCarbon dioxide (CO₂): {:.2}%",
-            planet.get_atmosphere().unwrap().get_co2() * 100_f64
+            planet.atmosphere().unwrap().co2() * 100_f64
         );
         println!(
             "\t\tCarbon monoxide (CO): {:.2}%",
-            planet.get_atmosphere().unwrap().get_co() * 100_f64
+            planet.atmosphere().unwrap().co() * 100_f64
         );
         println!(
             "\t\tNitrogen (N₂): {:.2}%",
-            planet.get_atmosphere().unwrap().get_n2() * 100_f64
+            planet.atmosphere().unwrap().n2() * 100_f64
         );
         println!(
             "\t\tOxygen (O₂): {:.2}%",
-            planet.get_atmosphere().unwrap().get_o2() * 100_f64
+            planet.atmosphere().unwrap().o2() * 100_f64
         );
         println!(
             "\t\tArgon (Ar): {:.2}%",
-            planet.get_atmosphere().unwrap().get_ar() * 100_f64
+            planet.atmosphere().unwrap().ar() * 100_f64
         );
         println!(
             "\t\tSulfur dioxide (SO₂): {:.2}%",
-            planet.get_atmosphere().unwrap().get_so2() * 100_f64
+            planet.atmosphere().unwrap().so2() * 100_f64
         );
         println!(
             "\t\tNeon (Ne): {:.2}%",
-            planet.get_atmosphere().unwrap().get_ne() * 100_f64
+            planet.atmosphere().unwrap().ne() * 100_f64
         );
         println!(
             "\t\tMethane (CH₄): {:.2}%",
-            planet.get_atmosphere().unwrap().get_ch4() * 100_f64
+            planet.atmosphere().unwrap().ch4() * 100_f64
         );
         println!(
             "\t\tHelium (He): {:.2}%",
-            planet.get_atmosphere().unwrap().get_he() * 100_f64
+            planet.atmosphere().unwrap().he() * 100_f64
         );
     }
     println!();
@@ -556,7 +598,7 @@ pub struct Stats {
 impl Stats {
     /// Adds a star to the stats.
     pub fn add_star(&mut self, st: &Star) {
-        match *st.get_class() {
+        match *st.class() {
             star::Class::BlackHole => self.black_holes += 1,
             star::Class::NeutronStar => self.neutron_stars += 1,
             star::Class::QuarkStar => self.quark_stars += 1,
@@ -573,56 +615,52 @@ impl Stats {
 
     /// Adds a planet to the stats.
     pub fn add_planet(&mut self, planet: &Planet) {
-        if self.min_sma > planet.get_orbit().get_sma() || self.min_sma == 0_f64 {
-            self.min_sma = planet.get_orbit().get_sma();
+        if self.min_sma > planet.orbit().sma() || self.min_sma == 0_f64 {
+            self.min_sma = planet.orbit().sma();
         }
-        if self.max_sma < planet.get_orbit().get_sma() {
-            self.max_sma = planet.get_orbit().get_sma();
+        if self.max_sma < planet.orbit().sma() {
+            self.max_sma = planet.orbit().sma();
         }
-        if self.min_orb_period > planet.get_orbit().get_orb_period() || self.min_orb_period == 0_f64
-        {
-            self.min_orb_period = planet.get_orbit().get_orb_period();
+        if self.min_orb_period > planet.orbit().orb_period() || self.min_orb_period == 0_f64 {
+            self.min_orb_period = planet.orbit().orb_period();
         }
-        if self.max_orb_period < planet.get_orbit().get_orb_period() {
-            self.max_orb_period = planet.get_orbit().get_orb_period();
+        if self.max_orb_period < planet.orbit().orb_period() {
+            self.max_orb_period = planet.orbit().orb_period();
         }
-        if self.min_day > planet.get_orbit().get_day() || self.min_day == 0_f64 {
-            self.min_day = planet.get_orbit().get_day();
+        if self.min_day > planet.orbit().calculate_day() || self.min_day == 0_f64 {
+            self.min_day = planet.orbit().calculate_day();
         }
-        if self.max_day < planet.get_orbit().get_day() {
-            self.max_day = planet.get_orbit().get_day();
+        if self.max_day < planet.orbit().calculate_day() {
+            self.max_day = planet.orbit().calculate_day();
         }
-        if planet.get_radius() > 2_f64 * EARTH_RADIUS && planet.get_radius() < 4_f64 * EARTH_RADIUS
-        {
+        if planet.radius() > 2_f64 * EARTH_RADIUS && planet.radius() < 4_f64 * EARTH_RADIUS {
             self.mini_neptunes += 1;
         }
-        match *planet.get_type() {
+        match *planet.planet_type() {
             planet::Type::Rocky => {
                 self.rocky += 1;
-                if planet.get_radius() > 0.8 * EARTH_RADIUS
-                    && planet.get_radius() < 1.25 * EARTH_RADIUS
-                {
+                if planet.radius() > 0.8 * EARTH_RADIUS && planet.radius() < 1.25 * EARTH_RADIUS {
                     self.super_earths += 1;
-                } else if planet.get_radius() < 0.8 * EARTH_RADIUS {
+                } else if planet.radius() < 0.8 * EARTH_RADIUS {
                     self.small_planets += 1;
                 }
 
-                if self.min_gravity > planet.get_surface_gravity() || self.min_gravity == 0_f64 {
-                    self.min_gravity = planet.get_surface_gravity();
+                if self.min_gravity > planet.surface_gravity() || self.min_gravity == 0_f64 {
+                    self.min_gravity = planet.surface_gravity();
                 }
-                if self.max_gravity < planet.get_surface_gravity() {
-                    self.max_gravity = planet.get_surface_gravity();
-                }
-
-                if self.min_temp > planet.get_min_temp() || self.min_temp == 0_f64 {
-                    self.min_temp = planet.get_min_temp();
-                }
-                if self.max_temp < planet.get_max_temp() {
-                    self.max_temp = planet.get_max_temp();
+                if self.max_gravity < planet.surface_gravity() {
+                    self.max_gravity = planet.surface_gravity();
                 }
 
-                if self.max_pressure < planet.get_atmosphere().unwrap().get_pressure() {
-                    self.max_pressure = planet.get_atmosphere().unwrap().get_pressure();
+                if self.min_temp > planet.min_temp() || self.min_temp == 0_f64 {
+                    self.min_temp = planet.min_temp();
+                }
+                if self.max_temp < planet.max_temp() {
+                    self.max_temp = planet.max_temp();
+                }
+
+                if self.max_pressure < planet.atmosphere().unwrap().pressure() {
+                    self.max_pressure = planet.atmosphere().unwrap().pressure();
                 }
 
                 if planet.is_habitable() {
@@ -633,13 +671,13 @@ impl Stats {
                     self.earth_twins += 1;
                 }
 
-                if planet.get_surface().unwrap().get_ocean_water() > 1_f64 - f64::EPSILON {
+                if planet.surface().unwrap().ocean_water() > 1_f64 - f64::EPSILON {
                     self.ocean_planets += 1;
                 }
             }
             planet::Type::Gaseous => {
                 self.gaseous += 1;
-                if planet.get_eff_temp() > 700_f64 {
+                if planet.eff_temp() > 700_f64 {
                     self.hot_jupiters += 1;
                 }
             }

@@ -22,9 +22,6 @@ addons:
 
 # run builds for all the trains
 rust:
-- 1.31.1
-- stable
-- beta
 - nightly
 
 # Extra jobs to include
